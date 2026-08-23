@@ -136,10 +136,11 @@ const COMPLAINTS_DATA = [
 ];
 
 const NOTIFICATIONS_DATA = [
-  { id: 1, icon: '🚨', title: 'Escalation Alert', message: 'Your complaint CMP-2024-001 (Road pothole) has been escalated to the Roads Department Supervisor.', time: '2 hours ago', read: false, type: 'danger' },
-  { id: 2, icon: '🔄', title: 'Status Update', message: 'Your complaint CMP-2024-001 status changed to "In Progress".', time: '1 day ago', read: false, type: 'info' },
-  { id: 3, icon: '✅', title: 'Resolved', message: 'Your complaint CMP-2023-021 (Garbage dump) has been marked as Resolved.', time: '3 days ago', read: true, type: 'success' },
-  { id: 4, icon: '📋', title: 'Under Review', message: 'Your complaint CMP-2024-002 is now Under Review by the Water Board.', time: '5 days ago', read: true, type: 'warning' },
+  { id: 1, icon: '🏛️', title: 'Higher Official Intervention Directive', message: 'Office of the District Collector has issued a mandatory Show-Cause Directive to Roads & Highways for delayed resolution of CMP-2024-001.', time: '25 mins ago', read: false, type: 'danger' },
+  { id: 2, icon: '🚨', title: 'SLA Escalation Alert', message: 'Your complaint CMP-2024-001 (Road pothole) exceeded the 48h resolution SLA and was auto-escalated to District Nodal Control.', time: '2 hours ago', read: false, type: 'warning' },
+  { id: 3, icon: '🔄', title: 'Field Crew Dispatched', message: 'Assistant Executive Engineer acknowledged directive and dispatched field repair crew to NH-47.', time: '1 day ago', read: false, type: 'info' },
+  { id: 4, icon: '✅', title: 'Complaint Resolved', message: 'Your complaint CMP-2023-021 (Garbage dump) was marked Resolved. Thank you for your feedback.', time: 'Dec 14, 2023', read: true, type: 'success' },
+  { id: 5, icon: '⭐', title: 'Feedback Request', message: 'Please rate your experience for resolved complaint CMP-2023-019.', time: 'Nov 24, 2023', read: true, type: 'info' },
 ];
 
 /* ── State ── */
@@ -2355,6 +2356,8 @@ function changeDeptFilter(dept) {
   if (badge3) badge3.textContent = dept === 'ALL' ? 'All Departments (Collectorate)' : dept;
   renderAdminOverview();
   renderAdminTable();
+  updateAdminNotifBadges();
+  renderDepartmentDirectives();
   showToast(`🔄 Switched view to ${dept === 'ALL' ? 'All Departments' : dept}`, 'info');
 }
 
@@ -2366,24 +2369,26 @@ function adminNav(page, btn) {
   if (target) target.classList.add('active');
 
   const titles = {
-    overview: 'Overview',
-    complaints: 'Department Complaints',
-    escalated: 'Escalated Complaints',
-    resolved: 'Resolved Tasks',
-    reports: 'Analytics & SLA',
+    overview: 'Department Overview',
+    complaints: 'Department Tasks & Grievances',
+    escalated: 'Escalated Complaints (Overdue)',
+    resolved: 'Resolved Tasks & Verified Closures',
+    reports: 'Analytics & SLA Performance',
     citizens: 'Manage Citizens',
-    officers: 'Manage Department Officials'
+    officers: 'Manage Department Officials',
+    notifications: 'Higher Official Directives & Show-Cause Notices'
   };
   const titleEl = document.getElementById('adminPageTitle');
   if (titleEl) titleEl.textContent = titles[page] || page;
 
-  if (page === 'complaints') renderAdminTable();
-  if (page === 'escalated')  renderEscalatedTable();
-  if (page === 'resolved')   renderResolvedTable();
-  if (page === 'reports')    renderReports();
-  if (page === 'overview')   renderAdminOverview();
-  if (page === 'citizens')   renderCitizensTable();
-  if (page === 'officers')   renderOfficersTable();
+  if (page === 'complaints')    renderAdminTable();
+  if (page === 'escalated')     renderEscalatedTable();
+  if (page === 'resolved')      renderResolvedTable();
+  if (page === 'reports')       renderReports();
+  if (page === 'overview')      renderAdminOverview();
+  if (page === 'citizens')      renderCitizensTable();
+  if (page === 'officers')      renderOfficersTable();
+  if (page === 'notifications') renderDepartmentDirectives();
 }
 
 function getDeptComplaints() {
@@ -2954,6 +2959,340 @@ function handleSaveOfficer(e) {
   closeAddOfficerModal();
   document.getElementById('formAddOfficer').reset();
   renderOfficersTable();
+}
+
+/* ══════════════════════════════════════════════════════
+   HIGHER OFFICIAL DIRECTIVES & SHOW-CAUSE ALERTS
+══════════════════════════════════════════════════════ */
+let DEPARTMENT_DIRECTIVES_DATA = [
+  {
+    id: 'DIR-2024-001',
+    sender: '🏛️ Office of the District Collector, Erode',
+    senderRole: 'District Collector & Magistrate',
+    dept: 'Roads & Highways',
+    targetComplaintId: 'CMP-2024-001',
+    complaintTitle: 'Large pothole on NH-47 near market',
+    complaintLocation: 'NH-47, Market Junction, Erode East',
+    lat: 11.3410,
+    lng: 77.7172,
+    severity: 'CRITICAL',
+    type: 'show_cause',
+    subject: '⚠️ Show-Cause Notice: Unresolved NH-47 Pothole SLA Breach',
+    message: 'Grievance CMP-2024-001 has been pending for over 72 hours exceeding the mandatory SLA. Immediate field repair team must be mobilized within 12 hours. Submit compliance report before 5:00 PM today.',
+    deadline: 'Today, 5:00 PM',
+    time: '25 mins ago',
+    read: false,
+    status: 'action_required'
+  },
+  {
+    id: 'DIR-2024-002',
+    sender: '🚨 Master Administrator (Sanjai)',
+    senderRole: 'District Nodal Grievance Controller',
+    dept: 'Tamil Nadu Electricity Board',
+    targetComplaintId: 'CMP-2024-007',
+    complaintTitle: 'Electrical wire hanging dangerously low',
+    complaintLocation: 'Mettur Road, Erode East',
+    lat: 11.3420,
+    lng: 77.7130,
+    severity: 'EMERGENCY',
+    type: 'immediate_action',
+    subject: '⚡ Emergency Safety Directive: Live High Voltage Hazard',
+    message: 'Immediate safety hazard reported by citizens in Erode East. High probability of electric shock. Line inspector must isolate and secure overhead cable immediately.',
+    deadline: 'Immediate (within 2 hours)',
+    time: '1 hour ago',
+    read: false,
+    status: 'action_required'
+  },
+  {
+    id: 'DIR-2024-003',
+    sender: '🏛️ District Revenue Officer (DRO), Erode',
+    senderRole: 'Public Grievance Appellate Authority',
+    dept: 'Water Supply',
+    targetComplaintId: 'CMP-2024-005',
+    complaintTitle: 'Blocked drainage causing waterlogging',
+    complaintLocation: 'Bus Stand Road, Gobichettipalayam',
+    lat: 11.3445,
+    lng: 77.7210,
+    severity: 'HIGH',
+    type: 'show_cause',
+    subject: '🌊 Urgent Drainage De-silting Directive',
+    message: 'Monsoon waterlogging risk near Gobichettipalayam Bus Stand. Deploy suction pump and clearing crew immediately.',
+    deadline: 'Tomorrow, 10:00 AM',
+    time: '3 hours ago',
+    read: true,
+    status: 'acknowledged'
+  },
+  {
+    id: 'DIR-2024-004',
+    sender: '🚨 Master Administrator (Sanjai)',
+    senderRole: 'District Nodal Grievance Controller',
+    dept: 'Sanitation',
+    targetComplaintId: 'CMP-2024-009',
+    complaintTitle: 'Open garbage dumping near residential area',
+    complaintLocation: 'Kaveri River Bank Rd, Bhavani',
+    lat: 11.3460,
+    lng: 77.7175,
+    severity: 'HIGH',
+    type: 'escalation',
+    subject: '🗑️ Sanitation Compliance Notice: River Bank Solid Waste',
+    message: 'River bank contamination risk. Clear solid waste and install warning signboard immediately.',
+    deadline: 'Tomorrow, 1:00 PM',
+    time: '5 hours ago',
+    read: true,
+    status: 'action_required'
+  }
+];
+
+let currentDirectiveFilter = 'all';
+
+function filterDirectives(type, btn) {
+  currentDirectiveFilter = type;
+  document.querySelectorAll('#admin-page-notifications .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderDepartmentDirectives();
+}
+
+function updateAdminNotifBadges() {
+  const activeDept = currentAdminDept;
+  const filtered = DEPARTMENT_DIRECTIVES_DATA.filter(d => {
+    if (activeDept === 'Collectorate' || activeDept === 'ALL') return true;
+    return d.dept.toLowerCase().includes(activeDept.toLowerCase());
+  });
+
+  const unreadCount = filtered.filter(d => !d.read || d.status === 'action_required').length;
+  
+  const sideBadge = document.getElementById('adminNotifSidebarCount');
+  if (sideBadge) {
+    sideBadge.textContent = unreadCount;
+    sideBadge.style.display = unreadCount > 0 ? 'inline-block' : 'none';
+  }
+
+  const topDot = document.getElementById('adminTopNotifDot');
+  if (topDot) {
+    topDot.style.display = unreadCount > 0 ? 'block' : 'none';
+  }
+}
+
+function renderDepartmentDirectives() {
+  const container = document.getElementById('departmentDirectivesList');
+  if (!container) return;
+
+  updateAdminNotifBadges();
+
+  const activeDept = currentAdminDept;
+  const deptDirectives = DEPARTMENT_DIRECTIVES_DATA.filter(d => {
+    if (activeDept === 'Collectorate' || activeDept === 'ALL') return true;
+    return d.dept.toLowerCase().includes(activeDept.toLowerCase());
+  });
+
+  // KPI Stats
+  const total = deptDirectives.length;
+  const actionReq = deptDirectives.filter(d => d.status === 'action_required').length;
+  const ack = deptDirectives.filter(d => d.status === 'acknowledged').length;
+  const compliant = deptDirectives.filter(d => d.status === 'compliant').length;
+
+  const statsRow = document.getElementById('directiveStatsRow');
+  if (statsRow) {
+    statsRow.innerHTML = `
+      <div class="admin-stat-card"><div class="value" style="color:#dc2626">${total}</div><div class="label">Total Official Directives</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:#ef4444">${actionReq}</div><div class="label">Action Overdue / Required</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--warning)">${ack}</div><div class="label">Acknowledged &amp; In-Progress</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--success)">${compliant}</div><div class="label">Compliance Verified</div></div>
+    `;
+  }
+
+  const filtered = deptDirectives.filter(d => {
+    if (currentDirectiveFilter === 'all') return true;
+    if (currentDirectiveFilter === 'show_cause') return d.type === 'show_cause';
+    if (currentDirectiveFilter === 'immediate_action') return d.type === 'immediate_action';
+    if (currentDirectiveFilter === 'compliant') return d.status === 'compliant';
+    return true;
+  });
+
+  const countText = document.getElementById('directivesCountText');
+  if (countText) countText.textContent = `${filtered.length} active directives for ${activeDept === 'Collectorate' ? 'All Departments' : activeDept}`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-radius:var(--radius-lg);padding:40px 20px;text-align:center">
+        <div style="font-size:36px;margin-bottom:10px">✅</div>
+        <div style="font-size:16px;font-weight:700;color:#0f172a">No Pending Directives or Show-Cause Notices</div>
+        <div style="font-size:13px;color:#64748b;margin-top:4px">All department grievances are within acceptable SLA time limits.</div>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(d => {
+    const isOverdue = d.status === 'action_required';
+    const borderColor = d.type === 'show_cause' ? '#ef4444' : (d.type === 'immediate_action' ? '#dc2626' : '#f59e0b');
+    const badgeBg = d.type === 'show_cause' ? '#fef2f2' : (d.type === 'immediate_action' ? '#fee2e2' : '#fef3c7');
+    const badgeColor = d.type === 'show_cause' ? '#dc2626' : (d.type === 'immediate_action' ? '#991b1b' : '#b45309');
+    const typeLabel = d.type === 'show_cause' ? '⚠️ SHOW-CAUSE MEMO' : (d.type === 'immediate_action' ? '⚡ EMERGENCY DIRECTIVE' : '🚨 COLLECTORATE ESCALATION');
+
+    return `
+      <div style="background:#ffffff;border:1px solid #e2e8f0;border-left:5px solid ${borderColor};border-radius:var(--radius-lg);padding:22px 24px;box-shadow:0 2px 6px rgba(0,0,0,0.03);position:relative">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="background:${badgeBg};color:${badgeColor};font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:0.04em">
+              ${typeLabel}
+            </span>
+            <code style="font-size:12px;font-weight:700;color:var(--blue)">${d.id}</code>
+            <span style="font-size:12px;color:var(--text-muted)">• Issued ${d.time}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:12px;font-weight:700;color:#dc2626;background:#fef2f2;padding:3px 8px;border-radius:4px;border:1px solid #fecaca">
+              ⏱️ Deadline: ${d.deadline}
+            </span>
+            <span class="status-badge ${d.status === 'compliant' ? 'status-resolved' : (d.status === 'acknowledged' ? 'status-progress' : 'status-escalated')}">
+              ${d.status === 'compliant' ? '✅ COMPLIED' : (d.status === 'acknowledged' ? '⚡ ACKNOWLEDGED' : '🔴 ACTION OVERDUE')}
+            </span>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:700;color:#0f172a;margin-bottom:6px">${d.subject}</h3>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:var(--radius-sm);padding:12px 16px;font-size:13px;color:#334155;line-height:1.6">
+            <div style="margin-bottom:6px"><strong>🏛️ From:</strong> ${d.sender} <span style="color:#64748b">(${d.senderRole})</span></div>
+            <div style="margin-bottom:6px"><strong>🏢 Target:</strong> Incharge, <span style="color:var(--blue);font-weight:600">${d.dept}</span></div>
+            <div style="margin-bottom:6px"><strong>📋 Target Grievance:</strong> <code style="color:var(--blue);font-weight:700">${d.targetComplaintId}</code> — ${d.complaintTitle} (📍 ${d.complaintLocation})</div>
+            <div style="padding-top:8px;border-top:1px dashed #cbd5e1;color:#1e293b;font-weight:500">
+              💬 <em>"${d.message}"</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Toolbar -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #f1f5f9;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;gap:8px">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}" target="_blank" class="btn-nav-gmaps" style="padding:6px 14px">
+              🚗 Travel Direction (Google Maps)
+            </a>
+            <button class="btn-map-pin" onclick="openLocationModal('${d.targetComplaintId}', '${(d.complaintTitle||'').replace(/'/g,"\\'")}', '${(d.complaintLocation||'').replace(/'/g,"\\'")}', ${d.lat}, ${d.lng})">
+              📍 Inspect Pin
+            </button>
+          </div>
+
+          <div style="display:flex;gap:8px">
+            ${d.status === 'action_required' ? `
+              <button class="btn-update" style="background:#ca8a04;padding:6px 14px" onclick="acknowledgeDirective('${d.id}')">
+                ⚡ Acknowledge &amp; Dispatch Crew
+              </button>
+            ` : ''}
+            ${d.status !== 'compliant' ? `
+              <button class="btn-update" style="background:#16a34a;padding:6px 16px" onclick="complyDirective('${d.id}')">
+                ✅ Submit Compliance &amp; Close
+              </button>
+            ` : `
+              <span style="font-size:12.5px;font-weight:700;color:var(--success);display:flex;align-items:center;gap:4px">
+                ✅ Compliance report verified &amp; approved by District Collectorate
+              </span>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function acknowledgeDirective(id) {
+  const d = DEPARTMENT_DIRECTIVES_DATA.find(item => item.id === id);
+  if (!d) return;
+  d.status = 'acknowledged';
+  d.read = true;
+  showToast(`⚡ Directive ${id} acknowledged. Field repair crew dispatch recorded.`, 'info');
+  renderDepartmentDirectives();
+}
+
+function complyDirective(id) {
+  const d = DEPARTMENT_DIRECTIVES_DATA.find(item => item.id === id);
+  if (!d) return;
+  d.status = 'compliant';
+  d.read = true;
+
+  // Also close the linked complaint in mock data
+  const cIdx = unifiedAdminData.findIndex(c => c.id === d.targetComplaintId);
+  if (cIdx !== -1) {
+    unifiedAdminData[cIdx].status = 'resolved';
+    unifiedAdminData[cIdx].escalated = false;
+    unifiedAdminData[cIdx].resolvedDate = new Date().toISOString().split('T')[0];
+  }
+
+  showToast(`✅ Compliance report submitted for ${id}. Complaint ${d.targetComplaintId} marked Resolved!`, 'success');
+  renderDepartmentDirectives();
+  renderAdminOverview();
+}
+
+/* ── Modal for Super Admin to Issue Directive ── */
+function openIssueDirectiveModal() {
+  const modal = document.getElementById('issueDirectiveModal');
+  if (modal) {
+    modal.classList.add('show');
+    const deptSelect = document.getElementById('dirTargetDept');
+    if (deptSelect) populateOverdueSelect(deptSelect.value);
+  }
+}
+
+function closeIssueDirectiveModal() {
+  const modal = document.getElementById('issueDirectiveModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function populateOverdueSelect(dept) {
+  const complaintSelect = document.getElementById('dirTargetComplaint');
+  if (!complaintSelect) return;
+
+  const list = unifiedAdminData.filter(c => c.dept.toLowerCase().includes(dept.toLowerCase()) || (c.category.toLowerCase() === 'road' && dept.includes('Roads')));
+  if (list.length === 0) {
+    complaintSelect.innerHTML = `<option value="">No active complaints in ${dept}</option>`;
+    return;
+  }
+
+  complaintSelect.innerHTML = list.map(c => `
+    <option value="${c.id}">${c.id} — ${c.title} (${c.constituency}) [Status: ${c.status.toUpperCase()}]</option>
+  `).join('');
+}
+
+function handleSendDirective(e) {
+  e.preventDefault();
+  const dept = document.getElementById('dirTargetDept').value;
+  const compId = document.getElementById('dirTargetComplaint').value;
+  const dirType = document.getElementById('dirType').value;
+  const deadline = document.getElementById('dirDeadline').value.trim();
+  const msg = document.getElementById('dirMessage').value.trim();
+
+  if (!compId || !deadline || !msg) {
+    showToast('Please fill all directive fields and select target complaint', 'error');
+    return;
+  }
+
+  const comp = unifiedAdminData.find(c => c.id === compId) || { title: 'Civic Grievance', address: 'Erode District', lat: 11.3410, lng: 77.7172 };
+
+  const newId = `DIR-2024-00${DEPARTMENT_DIRECTIVES_DATA.length + 1}`;
+  DEPARTMENT_DIRECTIVES_DATA.unshift({
+    id: newId,
+    sender: '🚨 Master Administrator (Sanjai)',
+    senderRole: 'District Nodal Grievance Controller',
+    dept: dept,
+    targetComplaintId: compId,
+    complaintTitle: comp.title,
+    complaintLocation: comp.address,
+    lat: comp.lat || 11.3410,
+    lng: comp.lng || 77.7172,
+    severity: dirType === 'immediate_action' ? 'EMERGENCY' : 'CRITICAL',
+    type: dirType,
+    subject: dirType === 'show_cause' ? `⚠️ Show-Cause Notice: ${compId} Resolution Delay` : `⚡ Urgent Field Directive: ${compId}`,
+    message: msg,
+    deadline: deadline,
+    time: 'Just now',
+    read: false,
+    status: 'action_required'
+  });
+
+  showToast(`🚨 High-Priority Directive ${newId} dispatched to Incharge, ${dept}!`, 'success');
+  closeIssueDirectiveModal();
+  renderDepartmentDirectives();
+  updateAdminNotifBadges();
 }
 
 
