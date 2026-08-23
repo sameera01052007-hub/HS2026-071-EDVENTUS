@@ -73,7 +73,14 @@ The portal combines **real-time AI triage**, **browser speech-to-text recording 
 | :--- | :--- | :--- | :--- |
 | **👑 Master Super Admin** | `sanjai090` | `Sanjai@0505` | Full District Control, Citizen & Officer User Management, Directives Dispatch |
 | **🏛️ Department Officer** | `admin` | `admin@2026` | Department-specific tasks (Roads, Water, Sanitation, TNEB, Drainage, Collectorate) |
-| **👥 Public Citizen** | *Any Mobile / Email* (e.g. `9876543210`) | *Any Password* | Citizen Grievance Submission, Voice Note, GPS Map, Personal History |
+| **👤 Demo Citizen 1 (Erode East)** | `ramesh@erode.in` / `9876543210` | `citizen123` | Ramesh Kumar • 7 Grievances • Ward 14 Periyar Nagar |
+| **👤 Demo Citizen 2 (Erode West)** | `priya@erode.in` / `9842111223` | `citizen123` | Priya Sundaram • 4 Grievances • Ward 08 Sampath Nagar |
+| **👤 Demo Citizen 3 (Bhavani)** | `karthik@erode.in` / `9789055667` | `citizen123` | Karthik Raja • 2 Grievances • Ward 03 Sangameshwarar Kovil |
+| **👤 Demo Citizen 4 (Gobichetti)** | `anitha@erode.in` / `9443299887` | `citizen123` | Anitha Murugesan • 5 Grievances • Ward 05 Kutchery St |
+| **👤 Demo Citizen 5 (Anthiyur)** | `senthil@erode.in` / `9715022334` | `citizen123` | Senthil Nathan • 2 Grievances • Ward 01 Gurunathaswamy Temple |
+| **🎲 Any Citizen / Test Account** | *Any Mobile / Email* | *Any Password* | Instant Verification, Voice Note, Live GPS Map, Custom Dashboard |
+
+> 💡 **Tip:** On the Citizen Login tab, click any of the **⚡ Demo Citizen Accounts** chips or use **⚡ Instant Login** to test with one click! Use **🎲 Fill Sample Citizen Details** on the Registration tab to test new user registration.
 
 ---
 

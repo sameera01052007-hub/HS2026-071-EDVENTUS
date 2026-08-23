@@ -349,7 +349,7 @@
               <label for="regPass">Create Password</label>
               <div class="input-wrap">
                 <span class="input-icon">🔒</span>
-                <input type="password" id="regPass" placeholder="••••••••" required />
+                <input type="password" id="regPass" placeholder="••••••••" value="citizen123" required />
               </div>
             </div>
 
@@ -785,16 +785,115 @@
 
         <!-- ── Page: Profile ── -->
         <div class="dash-page" id="page-profile">
-          <div class="section-header"><h2 class="section-title">Citizen Profile</h2></div>
-          <div class="info-panel" style="max-width:500px">
-            <div style="display:flex;flex-direction:column;gap:12px">
-              <div><label style="font-size:12px;color:var(--text-muted)">Name</label><div style="font-weight:600">Ramesh Kumar</div></div>
-              <div><label style="font-size:12px;color:var(--text-muted)">Mobile</label><div style="font-weight:600">+91 98765 43210</div></div>
-              <div><label style="font-size:12px;color:var(--text-muted)">Constituency</label><div style="font-weight:600">📍 Erode East</div></div>
-              <button class="topbar-signout-btn" style="margin-top:14px;width:fit-content" onclick="handleUniversalSignOut()">
-                🚪 Sign Out of Account
-              </button>
+          <div class="section-header"><h2 class="section-title">Citizen Profile &amp; Verification</h2></div>
+          <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;max-width:900px">
+            
+            <div class="info-panel">
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+                <div style="width:64px;height:64px;background:linear-gradient(135deg,var(--blue),#1e40af);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.3)" id="profileAvatar">R</div>
+                <div>
+                  <div style="font-size:18px;font-weight:700;color:var(--text-primary)" id="profileName">Ramesh Kumar</div>
+                  <div style="font-size:13px;color:var(--text-muted)" id="profileConst">📍 Erode East Constituency</div>
+                  <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+                    <span style="background:#f0fdf4;color:#16a34a;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid #bbf7d0">✓ Verified Resident</span>
+                    <span style="background:#eff6ff;color:#2563eb;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid #bfdbfe" id="profileCitizenId">CIT-1001</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="input-group">
+                  <label>Full Name</label>
+                  <div class="input-wrap">
+                    <span class="input-icon">👤</span>
+                    <input type="text" id="profileNameInput" value="Ramesh Kumar" />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>Mobile Number</label>
+                  <div class="input-wrap">
+                    <span class="input-icon">📱</span>
+                    <input type="tel" id="profilePhone" value="+91 98765 43210" />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>Email Address</label>
+                  <div class="input-wrap">
+                    <span class="input-icon">📧</span>
+                    <input type="email" id="profileEmail" value="ramesh@erode.in" />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>Registered Constituency</label>
+                  <div class="input-wrap">
+                    <span class="input-icon">🗺️</span>
+                    <select id="profileConstitSelect">
+                      <option value="Erode East" selected>Erode East</option>
+                      <option value="Erode West">Erode West</option>
+                      <option value="Bhavani">Bhavani</option>
+                      <option value="Gobichettipalayam">Gobichettipalayam</option>
+                      <option value="Perundurai">Perundurai</option>
+                      <option value="Modakkurichi">Modakkurichi</option>
+                      <option value="Anthiyur">Anthiyur</option>
+                      <option value="Sathyamangalam">Sathyamangalam</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:10px;margin-top:16px">
+                <button class="btn-primary" style="padding:8px 18px" onclick="saveCitizenProfile()">
+                  💾 Save Profile
+                </button>
+                <button class="topbar-signout-btn" onclick="handleUniversalSignOut()">
+                  🚪 Sign Out
+                </button>
+              </div>
             </div>
+
+            <!-- Citizen Verification Credentials & Stats -->
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div class="info-panel">
+                <div class="info-panel-title">🛡️ Civic Verification Record</div>
+                <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px">
+                  <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px">
+                    <span style="color:var(--text-muted)">Aadhaar UID:</span>
+                    <strong style="font-family:monospace" id="profileAadhaar">XXXX-XXXX-8921</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px">
+                    <span style="color:var(--text-muted)">Ward / Address:</span>
+                    <span style="font-weight:600;text-align:right" id="profileAddress">Ward 14 - Periyar Nagar, Erode</span>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:6px">
+                    <span style="color:var(--text-muted)">Member Since:</span>
+                    <strong id="profileRegDate">12 May 2024</strong>
+                  </div>
+                  <div style="display:flex;justify-content:space-between">
+                    <span style="color:var(--text-muted)">Civic Karma Level:</span>
+                    <span style="color:#16a34a;font-weight:700">🌟 Gold Contributor</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="info-panel">
+                <div class="info-panel-title">🏆 Grievance Resolution Summary</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
+                  <div style="background:#f8fafc;border-radius:8px;padding:10px 4px">
+                    <div style="font-size:22px;font-weight:800;color:var(--blue)" id="profileFiledCount">7</div>
+                    <div style="font-size:11px;color:var(--text-muted)">Filed</div>
+                  </div>
+                  <div style="background:#f0fdf4;border-radius:8px;padding:10px 4px">
+                    <div style="font-size:22px;font-weight:800;color:#16a34a" id="profileResolvedCount">4</div>
+                    <div style="font-size:11px;color:var(--text-muted)">Resolved</div>
+                  </div>
+                  <div style="background:#fffbeb;border-radius:8px;padding:10px 4px">
+                    <div style="font-size:22px;font-weight:800;color:#d97706" id="profilePendingCount">3</div>
+                    <div style="font-size:11px;color:var(--text-muted)">Active</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1314,6 +1413,25 @@
     </div>
   </div>
 
+  <!-- Modal: AI Work Completion & Repair Photo Verification -->
+  <div class="modal-overlay" id="repairVerificationModal">
+    <div class="modal-box" style="max-width:720px;border-radius:var(--radius-lg);overflow:hidden">
+      <div class="modal-header" style="background:#0f172a;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">🔍</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;color:#fff" id="repairModalTitle">AI Repair Verification &amp; Work Completion</div>
+            <div style="font-size:11.5px;color:#94a3b8" id="repairModalSub">Autonomous Place Matching &amp; Condition Verification</div>
+          </div>
+        </div>
+        <span style="cursor:pointer;font-size:20px;color:#cbd5e1;line-height:1" onclick="closeRepairModal()">✕</span>
+      </div>
+      <div style="padding:20px;max-height:82vh;overflow-y:auto;background:#fff" id="repairModalBody">
+        <!-- populated dynamically by JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification -->
   <div class="toast" id="toast"></div>
 
@@ -1352,19 +1470,71 @@
       const pass = document.getElementById('cLoginPass').value.trim();
       if (!id || !pass) { showToast('Please enter mobile/email and password', 'error'); return; }
       
-      showToast('✅ Signed in successfully! Welcome to Citizen Portal.', 'success');
+      // Match against demo citizens or create profile
+      const found = (typeof DEMO_CITIZENS !== 'undefined')
+        ? (DEMO_CITIZENS.find(c => c.email.toLowerCase() === id.toLowerCase() || c.phone === id || c.name.toLowerCase().includes(id.toLowerCase())) || {
+            id: 'CIT-' + Math.floor(1000 + Math.random() * 9000),
+            name: id.includes('@') ? id.split('@')[0].replace(/[\._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Verified Citizen',
+            email: id.includes('@') ? id : `${id}@erode.in`,
+            phone: id.replace(/\D/g, '') || '9876543210',
+            fullPhone: `+91 ${id.replace(/\D/g, '') || '9876543210'}`,
+            constituency: 'Erode East',
+            ward: 'Ward 14 - Periyar Nagar',
+            address: 'Gandhiji Road, Erode East',
+            aadhaarMasked: 'XXXX-XXXX-8921',
+            registeredDate: 'Today',
+            complaintsCount: 3,
+            resolvedCount: 1,
+            pendingCount: 2,
+            escalatedCount: 0,
+            avatar: id[0].toUpperCase()
+          })
+        : { name: 'Ramesh Kumar', constituency: 'Erode East' };
+
+      if (typeof applyCitizenSession === 'function') {
+        applyCitizenSession(found);
+      } else {
+        document.getElementById('sidebarName').textContent = found.name;
+        document.getElementById('sidebarConst').textContent = `📍 ${found.constituency}`;
+      }
+
+      showToast(`✅ Welcome back, ${found.name}! Signed in as citizen (${found.constituency}).`, 'success');
       showMasterView('citizen');
     }
 
     function handleCitizenRegister(e) {
       e.preventDefault();
       const name = document.getElementById('regName').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
       const constName = document.getElementById('regConstituency').value;
       if (!name || !constName) { showToast('Please fill all fields', 'error'); return; }
 
-      document.getElementById('sidebarName').textContent = name;
-      document.getElementById('sidebarConst').textContent = `📍 ${constName}`;
-      showToast(`✅ Registered successfully as citizen of ${constName}!`, 'success');
+      const newCitizen = {
+        id: 'CIT-' + Math.floor(1000 + Math.random() * 9000),
+        name: name,
+        email: `${name.toLowerCase().replace(/\s+/g, '')}@erode.in`,
+        phone: phone || '9876543210',
+        fullPhone: `+91 ${phone || '9876543210'}`,
+        constituency: constName,
+        ward: `Ward in ${constName}`,
+        address: `${constName} Main Road, Erode`,
+        aadhaarMasked: 'XXXX-XXXX-' + Math.floor(1000 + Math.random() * 9000),
+        registeredDate: 'Today (New Verified)',
+        complaintsCount: 1,
+        resolvedCount: 0,
+        pendingCount: 1,
+        escalatedCount: 0,
+        avatar: name[0].toUpperCase()
+      };
+
+      if (typeof applyCitizenSession === 'function') {
+        applyCitizenSession(newCitizen);
+      } else {
+        document.getElementById('sidebarName').textContent = name;
+        document.getElementById('sidebarConst').textContent = `📍 ${constName}`;
+      }
+
+      showToast(`✅ Welcome ${name}! Registered successfully as citizen of ${constName}.`, 'success');
       showMasterView('citizen');
     }
 

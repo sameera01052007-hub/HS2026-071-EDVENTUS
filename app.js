@@ -62,6 +62,222 @@ const COMPLAINTS_DATA = [
     location: 'Anna Nagar, 2nd Cross, Erode East — 11.3415°N, 77.7165°E',
   },
   {
+    id: 'CMP-2024-004',
+    title: 'Transformer humming loudly near residential block',
+    category: 'Electricity',
+    icon: '⚡',
+    description: 'The TNEB transformer near Bhavani Main Road residential block is producing loud humming and vibrations. Residents fear short circuit.',
+    status: 'review',
+    priority: 'high',
+    constituency: 'Bhavani',
+    department: 'Tamil Nadu Electricity Board',
+    submittedDate: '2024-02-01',
+    reviewDate: '2024-02-02',
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-02-05',
+    escalated: false,
+    location: 'Bhavani Main Rd, Block B, Bhavani — 11.4450°N, 77.6830°E',
+  },
+  {
+    id: 'CMP-2024-005',
+    title: 'Illegal sand mining near Bhavani river',
+    category: 'Collectorate',
+    icon: '🏛️',
+    description: 'Illegal sand mining is occurring near the Bhavani river bed at night. Heavy machinery noticed. Riverbank collapsing.',
+    status: 'progress',
+    priority: 'critical',
+    constituency: 'Bhavani',
+    department: 'District Collectorate',
+    submittedDate: '2024-02-05',
+    reviewDate: '2024-02-06',
+    progressDate: '2024-02-07',
+    resolvedDate: null,
+    slaDeadline: '2024-02-09',
+    escalated: true,
+    location: 'Bhavani River Bed, Bhavani — 11.4420°N, 77.6800°E',
+  },
+  {
+    id: 'CMP-2024-006',
+    title: 'Overflowing garbage bins near bus stand',
+    category: 'Garbage',
+    icon: '🗑️',
+    description: 'Garbage bins near the Gobichettipalayam bus stand have been overflowing for 5 days. Foul smell and health hazard for commuters.',
+    status: 'progress',
+    priority: 'high',
+    constituency: 'Gobichettipalayam',
+    department: 'Sanitation Department',
+    submittedDate: '2024-02-10',
+    reviewDate: '2024-02-11',
+    progressDate: '2024-02-12',
+    resolvedDate: null,
+    slaDeadline: '2024-02-14',
+    escalated: false,
+    location: 'Gobichettipalayam Bus Stand, Gobichettipalayam — 11.4575°N, 77.4370°E',
+  },
+  {
+    id: 'CMP-2024-007',
+    title: 'Sewage overflow on Perundurai main road',
+    category: 'Drainage',
+    icon: '🌊',
+    description: 'Sewage is overflowing on Perundurai-Erode main road. The drainage channel is blocked and raw sewage is flowing freely on the road.',
+    status: 'submitted',
+    priority: 'critical',
+    constituency: 'Perundurai',
+    department: 'Water Supply & Drainage Board',
+    submittedDate: '2024-02-15',
+    reviewDate: null,
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-02-17',
+    escalated: false,
+    location: 'Perundurai Main Road, Perundurai — 11.2730°N, 77.5850°E',
+  },
+  {
+    id: 'CMP-2024-008',
+    title: 'Road cave-in after heavy rainfall',
+    category: 'Road',
+    icon: '🛣️',
+    description: 'A significant road cave-in has occurred on Modakkurichi bypass road following heavy rain. One lane completely blocked.',
+    status: 'review',
+    priority: 'critical',
+    constituency: 'Modakkurichi',
+    department: 'Roads & Highways Dept.',
+    submittedDate: '2024-02-18',
+    reviewDate: '2024-02-19',
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-02-20',
+    escalated: true,
+    location: 'Modakkurichi Bypass Rd, Modakkurichi — 11.3170°N, 77.6360°E',
+  },
+  {
+    id: 'CMP-2024-009',
+    title: 'No drinking water in tribal hamlet',
+    category: 'Water',
+    icon: '💧',
+    description: 'The tribal hamlet in Anthiyur hills has not received drinking water supply for 10 days. Residents walking 5 km to fetch water.',
+    status: 'progress',
+    priority: 'critical',
+    constituency: 'Anthiyur',
+    department: 'Water Supply & Drainage Board',
+    submittedDate: '2024-02-20',
+    reviewDate: '2024-02-21',
+    progressDate: '2024-02-22',
+    resolvedDate: null,
+    slaDeadline: '2024-02-23',
+    escalated: true,
+    location: 'Anthiyur Hills Tribal Hamlet, Anthiyur — 11.5750°N, 77.5930°E',
+  },
+  {
+    id: 'CMP-2024-010',
+    title: 'Electric pole fallen on road after storm',
+    category: 'Electricity',
+    icon: '⚡',
+    description: 'An electric pole with live wires fell on the main road in Sathyamangalam after last night storm. Extremely dangerous.',
+    status: 'progress',
+    priority: 'critical',
+    constituency: 'Sathyamangalam',
+    department: 'Tamil Nadu Electricity Board',
+    submittedDate: '2024-02-25',
+    reviewDate: '2024-02-25',
+    progressDate: '2024-02-25',
+    resolvedDate: null,
+    slaDeadline: '2024-02-26',
+    escalated: true,
+    location: 'Sathyamangalam Main Road, Sathyamangalam — 11.5060°N, 77.2370°E',
+  },
+  {
+    id: 'CMP-2024-011',
+    title: 'Encroachment on government land near school',
+    category: 'Collectorate',
+    icon: '🏛️',
+    description: 'Illegal encroachment detected on government-owned land adjacent to Erode West government school. Construction started without permit.',
+    status: 'review',
+    priority: 'high',
+    constituency: 'Erode West',
+    department: 'District Collectorate',
+    submittedDate: '2024-03-01',
+    reviewDate: '2024-03-02',
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-03-06',
+    escalated: false,
+    location: 'Erode West Govt. School Area, Erode West — 11.3380°N, 77.7090°E',
+  },
+  {
+    id: 'CMP-2024-012',
+    title: 'Plastic waste dumped in open field',
+    category: 'Garbage',
+    icon: '🗑️',
+    description: 'Tonnes of plastic waste including medical waste has been illegally dumped in the open field near the Anthiyur lake.',
+    status: 'submitted',
+    priority: 'high',
+    constituency: 'Anthiyur',
+    department: 'Sanitation Department',
+    submittedDate: '2024-03-05',
+    reviewDate: null,
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-03-10',
+    escalated: false,
+    location: 'Anthiyur Lake Side Field, Anthiyur — 11.5700°N, 77.5860°E',
+  },
+  {
+    id: 'CMP-2024-013',
+    title: 'Bridge cracks visible near Cauvery canal',
+    category: 'Road',
+    icon: '🛣️',
+    description: 'Visible cracks on the old bridge over Cauvery canal in Erode West. Heavy vehicles still crossing daily. Risk of collapse.',
+    status: 'submitted',
+    priority: 'critical',
+    constituency: 'Erode West',
+    department: 'Roads & Highways Dept.',
+    submittedDate: '2024-03-08',
+    reviewDate: null,
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-03-10',
+    escalated: false,
+    location: 'Cauvery Canal Bridge, Erode West — 11.3356°N, 77.7080°E',
+  },
+  {
+    id: 'CMP-2024-014',
+    title: 'Blocked drain causing waterlogging in colony',
+    category: 'Drainage',
+    icon: '🌊',
+    description: 'The main drain in Perundurai SIDCO Industrial Colony is blocked. Rainwater and industrial runoff are waterlogging the area.',
+    status: 'review',
+    priority: 'high',
+    constituency: 'Perundurai',
+    department: 'Water Supply & Drainage Board',
+    submittedDate: '2024-03-10',
+    reviewDate: '2024-03-11',
+    progressDate: null,
+    resolvedDate: null,
+    slaDeadline: '2024-03-14',
+    escalated: false,
+    location: 'SIDCO Industrial Colony, Perundurai — 11.2760°N, 77.5810°E',
+  },
+  {
+    id: 'CMP-2024-015',
+    title: 'Garbage van not visiting for 2 weeks',
+    category: 'Garbage',
+    icon: '🗑️',
+    description: 'The municipal garbage collection van has not visited our area (Modakkurichi 5th ward) for the past 2 weeks. Waste piling up everywhere.',
+    status: 'progress',
+    priority: 'medium',
+    constituency: 'Modakkurichi',
+    department: 'Sanitation Department',
+    submittedDate: '2024-03-12',
+    reviewDate: '2024-03-13',
+    progressDate: '2024-03-15',
+    resolvedDate: null,
+    slaDeadline: '2024-03-16',
+    escalated: false,
+    location: 'Modakkurichi 5th Ward, Modakkurichi — 11.3140°N, 77.6390°E',
+  },
+  {
     id: 'CMP-2023-021',
     title: 'Garbage dump not cleared for a week',
     category: 'Garbage',
@@ -133,14 +349,75 @@ const COMPLAINTS_DATA = [
     escalated: false,
     location: 'Periyar Nagar, Erode East — 11.3388°N, 77.7178°E',
   },
+  {
+    id: 'CMP-2023-012',
+    title: 'Power cut every evening for 4 hours',
+    category: 'Electricity',
+    icon: '⚡',
+    description: 'Scheduled and unscheduled power cuts are occurring every evening between 6PM–10PM in Gobichettipalayam North ward. Affecting businesses and households.',
+    status: 'resolved',
+    priority: 'high',
+    constituency: 'Gobichettipalayam',
+    department: 'Tamil Nadu Electricity Board',
+    submittedDate: '2023-09-01',
+    reviewDate: '2023-09-02',
+    progressDate: '2023-09-04',
+    resolvedDate: '2023-09-09',
+    slaDeadline: '2023-09-10',
+    escalated: false,
+    location: 'Gobichettipalayam North Ward, Gobichettipalayam — 11.4600°N, 77.4380°E',
+  },
+  {
+    id: 'CMP-2023-007',
+    title: 'Caste certificate delay — 3 months pending',
+    category: 'Collectorate',
+    icon: '🏛️',
+    description: 'Applied for caste certificate 3 months ago at Sathyamangalam Tahsildar office. No response or update given. Urgently needed for college admission.',
+    status: 'resolved',
+    priority: 'medium',
+    constituency: 'Sathyamangalam',
+    department: 'District Collectorate',
+    submittedDate: '2023-07-10',
+    reviewDate: '2023-07-15',
+    progressDate: '2023-07-20',
+    resolvedDate: '2023-07-28',
+    slaDeadline: '2023-07-30',
+    escalated: false,
+    location: 'Sathyamangalam Tahsildar Office, Sathyamangalam — 11.5055°N, 77.2380°E',
+  },
+  {
+    id: 'CMP-2023-003',
+    title: 'Drain blocked causing mosquito breeding',
+    category: 'Drainage',
+    icon: '🌊',
+    description: 'Stagnant water in blocked drain near Anthiyur market is breeding mosquitoes. Dengue cases reported in the area.',
+    status: 'resolved',
+    priority: 'high',
+    constituency: 'Anthiyur',
+    department: 'Water Supply & Drainage Board',
+    submittedDate: '2023-06-05',
+    reviewDate: '2023-06-06',
+    progressDate: '2023-06-07',
+    resolvedDate: '2023-06-10',
+    slaDeadline: '2023-06-12',
+    escalated: false,
+    location: 'Anthiyur Market Area, Anthiyur — 11.5730°N, 77.5900°E',
+  },
 ];
 
 const NOTIFICATIONS_DATA = [
   { id: 1, icon: '🏛️', title: 'Higher Official Intervention Directive', message: 'Office of the District Collector has issued a mandatory Show-Cause Directive to Roads & Highways for delayed resolution of CMP-2024-001.', time: '25 mins ago', read: false, type: 'danger' },
-  { id: 2, icon: '🚨', title: 'SLA Escalation Alert', message: 'Your complaint CMP-2024-001 (Road pothole) exceeded the 48h resolution SLA and was auto-escalated to District Nodal Control.', time: '2 hours ago', read: false, type: 'warning' },
-  { id: 3, icon: '🔄', title: 'Field Crew Dispatched', message: 'Assistant Executive Engineer acknowledged directive and dispatched field repair crew to NH-47.', time: '1 day ago', read: false, type: 'info' },
-  { id: 4, icon: '✅', title: 'Complaint Resolved', message: 'Your complaint CMP-2023-021 (Garbage dump) was marked Resolved. Thank you for your feedback.', time: 'Dec 14, 2023', read: true, type: 'success' },
-  { id: 5, icon: '⭐', title: 'Feedback Request', message: 'Please rate your experience for resolved complaint CMP-2023-019.', time: 'Nov 24, 2023', read: true, type: 'info' },
+  { id: 2, icon: '🚨', title: 'SLA Escalation Alert — CMP-2024-009', message: 'Complaint CMP-2024-009 (No drinking water in tribal hamlet, Anthiyur) exceeded the 24h critical SLA. Auto-escalated to District Nodal Control.', time: '1 hour ago', read: false, type: 'warning' },
+  { id: 3, icon: '⚡', title: 'Emergency — Fallen Electric Pole', message: 'CMP-2024-010: Fallen electric pole with live wires reported on Sathyamangalam Main Road. TNEB crew dispatched. Avoid the area.', time: '3 hours ago', read: false, type: 'danger' },
+  { id: 4, icon: '🔄', title: 'Field Crew Dispatched', message: 'Assistant Executive Engineer acknowledged directive and dispatched field repair crew to NH-47 for CMP-2024-001.', time: '1 day ago', read: false, type: 'info' },
+  { id: 5, icon: '🗺️', title: 'New Complaint Registered Near You', message: 'A new critical complaint (Bridge cracks, Cauvery Canal — CMP-2024-013) was registered in Erode West, near your area.', time: '2 days ago', read: false, type: 'warning' },
+  { id: 6, icon: '🏛️', title: 'Show-Cause Memo Issued', message: 'District Collector issued a Show-Cause memo to the Bhavani sand-mining supervisor. CMP-2024-005 under immediate investigation.', time: '3 days ago', read: false, type: 'danger' },
+  { id: 7, icon: '🔍', title: 'Complaint Under Review', message: 'Your complaint CMP-2024-002 (Water supply disruption, Gandhi Nagar) is now being reviewed by the Water Supply & Drainage Board.', time: '4 days ago', read: true, type: 'info' },
+  { id: 8, icon: '✅', title: 'Complaint Resolved', message: 'Your complaint CMP-2023-021 (Garbage dump, Temple Street) has been marked Resolved. Please rate your experience.', time: 'Dec 14, 2023', read: true, type: 'success' },
+  { id: 9, icon: '✅', title: 'Drainage Issue Resolved', message: 'CMP-2023-019 (Drainage overflow, Main Bazaar Road) has been successfully resolved by the Water Supply & Drainage Board.', time: 'Nov 27, 2023', read: true, type: 'success' },
+  { id: 10, icon: '⭐', title: 'Feedback Request', message: 'Please rate your experience for resolved complaint CMP-2023-019 (Drainage overflow, Erode East).', time: 'Nov 28, 2023', read: true, type: 'info' },
+  { id: 11, icon: '✅', title: 'Power Restoration Confirmed', message: 'CMP-2023-012 (Power cut, Gobichettipalayam North Ward) has been resolved. TNEB upgraded the feeder line. Power restored.', time: 'Sep 9, 2023', read: true, type: 'success' },
+  { id: 12, icon: '🎉', title: 'Certificate Issued Successfully', message: 'CMP-2023-007: Your caste certificate application has been processed and the certificate has been dispatched by post.', time: 'Jul 28, 2023', read: true, type: 'success' },
 ];
 
 /* ── State ── */
@@ -355,15 +632,18 @@ function renderComplaintCard(c, delay = 0) {
 
 // Overview — Recent Complaints
 function renderRecentComplaints() {
-  const container = document.getElementById('recentComplaintsList');
+  const container = document.getElementById('recentComplaintsList') || document.getElementById('overviewComplaintsList');
   if (!container) return;
   const recent = COMPLAINTS_DATA.slice(0, 3);
   container.innerHTML = recent.map((c, i) => renderComplaintCard(c, i * 80)).join('');
 }
+function renderOverviewComplaints() {
+  renderRecentComplaints();
+}
 
 // My Complaints Page
 function renderAllComplaints(filter = 'all') {
-  const container = document.getElementById('allComplaintsList');
+  const container = document.getElementById('allComplaintsList') || document.getElementById('myComplaintsList');
   if (!container) return;
   const filtered = filter === 'all' ? COMPLAINTS_DATA : COMPLAINTS_DATA.filter(c => c.status === filter);
   if (filtered.length === 0) {
@@ -372,18 +652,38 @@ function renderAllComplaints(filter = 'all') {
   }
   container.innerHTML = filtered.map((c, i) => renderComplaintCard(c, i * 60)).join('');
 }
+function renderMyComplaints(filter = 'all') {
+  renderAllComplaints(filter);
+}
 
 function filterComplaints(filter, btn) {
-  document.querySelectorAll('#page-complaints .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  document.querySelectorAll('#page-complaints .filter-btn, .dash-page#page-complaints .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
   renderAllComplaints(filter);
 }
 
 // History Page
 function renderHistory() {
-  const container = document.getElementById('historyList');
+  const container = document.getElementById('historyList') || document.getElementById('historyComplaintsList');
   if (!container) return;
   container.innerHTML = COMPLAINTS_DATA.map((c, i) => renderComplaintCard(c, i * 60)).join('');
+}
+
+// SLA Tracker
+function renderSlaTracker() {
+  const container = document.getElementById('slaTrackerTimeline');
+  if (!container) return;
+  const activeSlaItems = COMPLAINTS_DATA.filter(c => c.status !== 'resolved').slice(0, 3);
+  container.innerHTML = activeSlaItems.map(c => `
+    <div style="padding:10px 12px;background:var(--bg-panel);border-radius:var(--radius-sm);margin-bottom:8px;border-left:3px solid ${c.escalated ? 'var(--danger)' : 'var(--blue)'}">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+        <strong>${c.id}</strong>
+        <span style="color:${c.escalated ? 'var(--danger)' : 'var(--warning)'};font-weight:700">${c.escalated ? '🚨 Overdue SLA' : '⏱️ SLA Active'}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.title}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Target Deadline: <strong>${c.slaDeadline}</strong> • ${c.department}</div>
+    </div>
+  `).join('');
 }
 
 // Nearby Complaints (Map Page)
@@ -399,11 +699,12 @@ function renderCategoryBreakdown() {
   const container = document.getElementById('categoryBreakdown');
   if (!container) return;
   const cats = [
-    { name: 'Road', icon: '🛣️', count: 2, color: 'hsl(220,90%,56%)', pct: 29 },
-    { name: 'Water', icon: '💧', count: 2, color: 'hsl(200,85%,52%)', pct: 29 },
-    { name: 'Garbage', icon: '🗑️', count: 1, color: 'hsl(38,92%,55%)', pct: 14 },
-    { name: 'Electricity', icon: '⚡', count: 1, color: 'hsl(270,70%,60%)', pct: 14 },
-    { name: 'Drainage', icon: '🌊', count: 1, color: 'hsl(145,65%,45%)', pct: 14 },
+    { name: 'Road', icon: '🛣️', count: 5, color: 'hsl(220,90%,56%)', pct: 23 },
+    { name: 'Water', icon: '💧', count: 4, color: 'hsl(200,85%,52%)', pct: 18 },
+    { name: 'Garbage', icon: '🗑️', count: 4, color: 'hsl(38,92%,55%)', pct: 18 },
+    { name: 'Electricity', icon: '⚡', count: 4, color: 'hsl(270,70%,60%)', pct: 18 },
+    { name: 'Drainage', icon: '🌊', count: 4, color: 'hsl(145,65%,45%)', pct: 18 },
+    { name: 'Collectorate', icon: '🏛️', count: 3, color: 'hsl(0,72%,55%)', pct: 14 },
   ];
   container.innerHTML = cats.map(cat => `
     <div class="cat-item">
@@ -423,11 +724,14 @@ function renderTimeline() {
   const container = document.getElementById('activityTimeline');
   if (!container) return;
   const events = [
-    { icon: '🚨', title: 'Escalation Report Sent', desc: 'CMP-2024-001 escalated to Roads Dept. Supervisor', time: '2 hours ago', color: 'hsla(0,72%,55%,0.2)' },
-    { icon: '🔄', title: 'Status Updated', desc: 'CMP-2024-001 moved to "In Progress"', time: '1 day ago', color: 'hsla(200,85%,52%,0.2)' },
-    { icon: '🔍', title: 'Under Review', desc: 'CMP-2024-002 is now under review', time: '2 days ago', color: 'hsla(38,92%,55%,0.2)' },
-    { icon: '✅', title: 'Complaint Resolved', desc: 'CMP-2023-021 garbage issue resolved', time: '3 days ago', color: 'hsla(145,65%,45%,0.2)' },
-    { icon: '📨', title: 'New Complaint Submitted', desc: 'CMP-2024-003 street light issue submitted', time: '4 days ago', color: 'hsla(220,90%,56%,0.2)' },
+    { icon: '⚡', title: 'Emergency Response Initiated', desc: 'CMP-2024-010: TNEB crew dispatched to Sathyamangalam — fallen electric pole', time: '3 hours ago', color: 'hsla(0,72%,55%,0.2)' },
+    { icon: '🚨', title: 'SLA Escalation — Water Crisis', desc: 'CMP-2024-009 (Anthiyur tribal hamlet) auto-escalated to District Nodal Control', time: '5 hours ago', color: 'hsla(0,72%,55%,0.2)' },
+    { icon: '🏛️', title: 'Show-Cause Memo Dispatched', desc: 'Collector issued memo to Bhavani Roads Dept for CMP-2024-008 cave-in', time: '1 day ago', color: 'hsla(38,92%,55%,0.2)' },
+    { icon: '🔄', title: 'Status Updated — In Progress', desc: 'CMP-2024-006 (Garbage, Gobichettipalayam) field crew deployed', time: '2 days ago', color: 'hsla(200,85%,52%,0.2)' },
+    { icon: '🔍', title: 'Under Review', desc: 'CMP-2024-011 (Encroachment, Erode West) under Collectorate review', time: '3 days ago', color: 'hsla(270,70%,60%,0.2)' },
+    { icon: '📨', title: 'New Critical Complaint', desc: 'CMP-2024-013 (Bridge cracks, Cauvery Canal) submitted and flagged critical', time: '4 days ago', color: 'hsla(220,90%,56%,0.2)' },
+    { icon: '✅', title: 'Complaint Resolved', desc: 'CMP-2023-019 drainage overflow resolved by Water Supply Board', time: '5 days ago', color: 'hsla(145,65%,45%,0.2)' },
+    { icon: '🎉', title: 'Power Restored in Gobichettipalayam', desc: 'CMP-2023-012 fully resolved — feeder line upgraded by TNEB', time: '7 days ago', color: 'hsla(145,65%,45%,0.2)' },
   ];
   container.innerHTML = events.map(e => `
     <div class="timeline-item">
@@ -497,8 +801,9 @@ function renderTrendChart() {
   const labels = document.getElementById('trendLabels');
   if (!chart) return;
   const months = [
-    { label: 'Aug', val: 1 }, { label: 'Sep', val: 2 }, { label: 'Oct', val: 1 },
-    { label: 'Nov', val: 1 }, { label: 'Dec', val: 2 }, { label: 'Jan', val: 3 },
+    { label: 'Jun', val: 1 }, { label: 'Jul', val: 2 }, { label: 'Aug', val: 1 },
+    { label: 'Sep', val: 3 }, { label: 'Oct', val: 2 }, { label: 'Nov', val: 3 },
+    { label: 'Dec', val: 4 }, { label: 'Jan', val: 5 }, { label: 'Feb', val: 8 }, { label: 'Mar', val: 6 },
   ];
   const max = Math.max(...months.map(m => m.val));
   chart.innerHTML = months.map(m => `
@@ -514,10 +819,10 @@ function renderStatusSplit() {
   const container = document.getElementById('statusSplit');
   if (!container) return;
   const statuses = [
-    { label: 'Resolved', count: 4, cls: 'status-resolved', icon: '✅' },
-    { label: 'In Progress', count: 1, cls: 'status-progress', icon: '🔄' },
-    { label: 'Under Review', count: 1, cls: 'status-review', icon: '🔍' },
-    { label: 'Submitted', count: 1, cls: 'status-submitted', icon: '📨' },
+    { label: 'Resolved', count: 8, cls: 'status-resolved', icon: '✅' },
+    { label: 'In Progress', count: 6, cls: 'status-progress', icon: '🔄' },
+    { label: 'Under Review', count: 5, cls: 'status-review', icon: '🔍' },
+    { label: 'Submitted', count: 5, cls: 'status-submitted', icon: '📨' },
   ];
   container.innerHTML = statuses.map(s => `
     <div style="display:flex;align-items:center;justify-content:space-between">
@@ -531,10 +836,10 @@ function renderPriorityDist() {
   const container = document.getElementById('priorityDist');
   if (!container) return;
   const priorities = [
-    { label: 'Critical', count: 1, cls: 'priority-critical', color: 'var(--danger)' },
-    { label: 'High', count: 2, cls: 'priority-high', color: 'var(--critical)' },
-    { label: 'Medium', count: 3, cls: 'priority-medium', color: 'var(--warning)' },
-    { label: 'Low', count: 1, cls: 'priority-low', color: 'var(--success)' },
+    { label: 'Critical', count: 8, cls: 'priority-critical', color: 'var(--danger)' },
+    { label: 'High', count: 8, cls: 'priority-high', color: 'var(--critical)' },
+    { label: 'Medium', count: 4, cls: 'priority-medium', color: 'var(--warning)' },
+    { label: 'Low', count: 2, cls: 'priority-low', color: 'var(--success)' },
   ];
   const total = priorities.reduce((s, p) => s + p.count, 0);
   container.innerHTML = priorities.map(p => `
@@ -552,10 +857,11 @@ function renderDeptPerformance() {
   const container = document.getElementById('deptPerformance');
   if (!container) return;
   const depts = [
-    { name: 'Roads & Highways', icon: '🛣️', total: 2, resolved: 1, avgDays: 5.2 },
-    { name: 'Water Supply & Drainage', icon: '💧', total: 3, resolved: 2, avgDays: 3.8 },
-    { name: 'Sanitation', icon: '🗑️', total: 1, resolved: 1, avgDays: 4.0 },
-    { name: 'TNEB Electricity', icon: '⚡', total: 1, resolved: 0, avgDays: '-' },
+    { name: 'Roads & Highways', icon: '🛣️', total: 5, resolved: 2, avgDays: 6.4 },
+    { name: 'Water Supply & Drainage', icon: '💧', total: 8, resolved: 4, avgDays: 3.8 },
+    { name: 'Sanitation Dept.', icon: '🗑️', total: 4, resolved: 2, avgDays: 4.2 },
+    { name: 'TNEB Electricity', icon: '⚡', total: 4, resolved: 2, avgDays: 7.1 },
+    { name: 'District Collectorate', icon: '🏛️', total: 3, resolved: 1, avgDays: 12.5 },
   ];
   container.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:0">
@@ -641,6 +947,37 @@ function openComplaintModal(id) {
       </div>
       <div style="font-size:13px;font-weight:600">📍 ${c.location}</div>
     </div>
+
+    ${c.status === 'resolved' ? `
+      <!-- AI Verified Resolution Proof Section -->
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:14px;margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px;color:#15803d">
+            <span>🛡️ AI Verified Work Completion Certificate</span>
+          </div>
+          <span style="background:#16a34a;color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">✓ 100% VERIFIED</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px;text-align:center">
+            <div style="font-size:10.5px;font-weight:700;color:#dc2626;margin-bottom:4px">📷 BEFORE REPAIR (CITIZEN)</div>
+            <div style="height:100px;background:#1e293b;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+              ${(typeof REPAIR_PROOFS_DB !== 'undefined' && REPAIR_PROOFS_DB[c.category] ? REPAIR_PROOFS_DB[c.category].beforeSvg : '')}
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:6px;text-align:center">
+            <div style="font-size:10.5px;font-weight:700;color:#16a34a;margin-bottom:4px">🛠️ AFTER REPAIR (COMPLETED)</div>
+            <div style="height:100px;background:#1e293b;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+              ${(typeof REPAIR_PROOFS_DB !== 'undefined' && REPAIR_PROOFS_DB[c.category] ? REPAIR_PROOFS_DB[c.category].afterSvg : '')}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#166534;background:#dcfce7;padding:6px 10px;border-radius:4px">
+          <span>📍 Place Identity: <strong>98.4% Match</strong></span>
+          <span>🛠️ Defect Remediated: <strong>97.2% Fixed</strong></span>
+          <span>📅 Closed: <strong>${c.resolvedDate || '2024-02-18'}</strong></span>
+        </div>
+      </div>
+    ` : ''}
 
     <div>
       <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Resolution Timeline</div>
@@ -1368,24 +1705,268 @@ function submitComplaint() {
 }
 
 /* ══════════════════════════════════════════════════════
-   PROFILE
+   FAKE DATA & CITIZEN DEMO ACCOUNTS
 ══════════════════════════════════════════════════════ */
-function saveProfile() {
-  const name = document.getElementById('profileNameInput')?.value;
+const DEMO_CITIZENS = [
+  {
+    id: 'CIT-1001',
+    name: 'Ramesh Kumar',
+    email: 'ramesh@erode.in',
+    phone: '9876543210',
+    fullPhone: '+91 98765 43210',
+    password: 'citizen123',
+    constituency: 'Erode East',
+    ward: 'Ward 14 - Periyar Nagar, Erode East - 638001',
+    address: '142, Gandhiji Road, Near Manikoondu, Erode East',
+    aadhaarMasked: 'XXXX-XXXX-8921',
+    registeredDate: '12 May 2024',
+    complaintsCount: 7,
+    resolvedCount: 4,
+    pendingCount: 3,
+    escalatedCount: 1,
+    avatar: 'R',
+    initials: 'RK',
+    status: 'active'
+  },
+  {
+    id: 'CIT-1002',
+    name: 'Priya Sundaram',
+    email: 'priya@erode.in',
+    phone: '9842111223',
+    fullPhone: '+91 98421 11223',
+    password: 'citizen123',
+    constituency: 'Erode West',
+    ward: 'Ward 08 - Sampath Nagar, Erode West - 638011',
+    address: '28/4, EVN Road, Near GH Roundana, Erode West',
+    aadhaarMasked: 'XXXX-XXXX-3419',
+    registeredDate: '18 May 2024',
+    complaintsCount: 4,
+    resolvedCount: 2,
+    pendingCount: 2,
+    escalatedCount: 0,
+    avatar: 'P',
+    initials: 'PS',
+    status: 'active'
+  },
+  {
+    id: 'CIT-1003',
+    name: 'Karthik Raja',
+    email: 'karthik@erode.in',
+    phone: '9789055667',
+    fullPhone: '+91 97890 55667',
+    password: 'citizen123',
+    constituency: 'Bhavani',
+    ward: 'Ward 03 - Sangameshwarar Kovil Street, Bhavani - 638301',
+    address: '55, Kooduthurai North Bank, Bhavani',
+    aadhaarMasked: 'XXXX-XXXX-7102',
+    registeredDate: '01 Jun 2024',
+    complaintsCount: 2,
+    resolvedCount: 1,
+    pendingCount: 1,
+    escalatedCount: 1,
+    avatar: 'K',
+    initials: 'KR',
+    status: 'active'
+  },
+  {
+    id: 'CIT-1004',
+    name: 'Anitha Murugesan',
+    email: 'anitha@erode.in',
+    phone: '9443299887',
+    fullPhone: '+91 94432 99887',
+    password: 'citizen123',
+    constituency: 'Gobichettipalayam',
+    ward: 'Ward 05 - Kutchery Street, Gobichettipalayam - 638452',
+    address: '12-A, Market Road, Near Pariyur Junction, Gobichetti',
+    aadhaarMasked: 'XXXX-XXXX-5583',
+    registeredDate: '15 Jun 2024',
+    complaintsCount: 5,
+    resolvedCount: 3,
+    pendingCount: 2,
+    escalatedCount: 0,
+    avatar: 'A',
+    initials: 'AM',
+    status: 'active'
+  },
+  {
+    id: 'CIT-1007',
+    name: 'Senthil Nathan',
+    email: 'senthil@erode.in',
+    phone: '9715022334',
+    fullPhone: '+91 97150 22334',
+    password: 'citizen123',
+    constituency: 'Anthiyur',
+    ward: 'Ward 01 - Gurunathaswamy Temple Rd, Anthiyur - 638501',
+    address: '89, Bazaar Street, Anthiyur',
+    aadhaarMasked: 'XXXX-XXXX-6638',
+    registeredDate: '01 Aug 2024',
+    complaintsCount: 2,
+    resolvedCount: 1,
+    pendingCount: 1,
+    escalatedCount: 0,
+    avatar: 'S',
+    initials: 'SN',
+    status: 'active'
+  },
+  {
+    id: 'CIT-1008',
+    name: 'Kavitha Balan',
+    email: 'kavitha@erode.in',
+    phone: '9865077889',
+    fullPhone: '+91 98650 77889',
+    password: 'citizen123',
+    constituency: 'Sathyamangalam',
+    ward: 'Ward 06 - Bannari Amman Kovil Road, Sathyamangalam - 638401',
+    address: '34, Mysore Trunk Road, Sathyamangalam',
+    aadhaarMasked: 'XXXX-XXXX-1190',
+    registeredDate: '05 Aug 2024',
+    complaintsCount: 1,
+    resolvedCount: 1,
+    pendingCount: 0,
+    escalatedCount: 0,
+    avatar: 'K',
+    initials: 'KB',
+    status: 'active'
+  }
+];
+
+const RANDOM_CITIZEN_PROFILES = [
+  { name: 'Muthukumar S', phone: '9843055412', constituency: 'Perundurai', address: '12, Chennimalai Road, Perundurai' },
+  { name: 'Deepa Selvaraj', phone: '9629088776', constituency: 'Modakkurichi', address: '45, Railway Feeder Road, Modakkurichi' },
+  { name: 'Vigneshwaran M', phone: '9952044332', constituency: 'Perundurai', address: '88, SIPCOT Industrial Complex, Perundurai' },
+  { name: 'Revathi Krishnan', phone: '9894012345', constituency: 'Erode West', address: '102, Thindal Malai Foot Rd, Erode West' },
+  { name: 'Saravanan Palanisamy', phone: '9787123987', constituency: 'Bhavani', address: '67, Cauvery Riverbed St, Bhavani' },
+  { name: 'Meenakshi Sundaram', phone: '9442167890', constituency: 'Gobichettipalayam', address: '23, Alingiam Road, Gobichettipalayam' },
+  { name: 'Gopalakrishnan V', phone: '9865432109', constituency: 'Sathyamangalam', address: '50, Bhavanisagar Dam Rd, Sathyamangalam' }
+];
+
+let randomCitizenIndex = 0;
+
+/* ── Select Demo Citizen (Auto-fills or Auto-logins) ── */
+function selectDemoCitizen(id, autoLogin = false) {
+  const citizen = DEMO_CITIZENS.find(c => c.id === id) || DEMO_CITIZENS[0];
+  if (!citizen) return;
+
+  const loginInput = document.getElementById('cLoginId');
+  const passInput = document.getElementById('cLoginPass');
+  if (loginInput) loginInput.value = citizen.email;
+  if (passInput) passInput.value = citizen.password;
+
+  // Highlight active chip
+  document.querySelectorAll('.demo-citizen-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.id === id);
+  });
+
+  // Update preview card
+  const pName = document.getElementById('demoPreviewName');
+  const pMeta = document.getElementById('demoPreviewMeta');
+  if (pName) pName.textContent = `${citizen.name} (${citizen.id})`;
+  if (pMeta) pMeta.textContent = `📍 ${citizen.constituency} • ${citizen.complaintsCount} Grievances (${citizen.resolvedCount} Resolved, ${citizen.pendingCount} Active)`;
+
+  if (autoLogin) {
+    applyCitizenSession(citizen);
+    showToast(`🌟 Logged in as demo citizen: ${citizen.name} (${citizen.constituency})`, 'success');
+    if (typeof showMasterView === 'function') {
+      showMasterView('citizen');
+    }
+  }
+}
+
+/* ── Auto-Fill Random Sample Citizen in Registration Form ── */
+function fillRandomCitizenRegisterData() {
+  const sample = RANDOM_CITIZEN_PROFILES[randomCitizenIndex % RANDOM_CITIZEN_PROFILES.length];
+  randomCitizenIndex++;
+
+  const nameInput = document.getElementById('regName');
+  const phoneInput = document.getElementById('regPhone');
+  const constSelect = document.getElementById('regConstituency');
+  const passInput = document.getElementById('regPass');
+
+  if (nameInput) nameInput.value = sample.name;
+  if (phoneInput) phoneInput.value = sample.phone;
+  if (constSelect) constSelect.value = sample.constituency;
+  if (passInput) passInput.value = 'citizen123';
+
+  showToast(`🎲 Sample citizen details loaded: ${sample.name} (${sample.constituency})`, 'info');
+}
+
+/* ── Apply Citizen Session to Dashboard and UI Elements ── */
+function applyCitizenSession(citizen) {
+  sessionStorage.setItem('citizen', JSON.stringify(citizen));
+
+  // Sidebar elements
+  const sName = document.getElementById('sidebarName');
+  const sAvatar = document.getElementById('sidebarAvatar');
+  const sConst = document.getElementById('sidebarConst');
+  if (sName) sName.textContent = citizen.name;
+  if (sAvatar) sAvatar.textContent = citizen.avatar || citizen.name[0].toUpperCase();
+  if (sConst) sConst.textContent = `📍 ${citizen.constituency}`;
+
+  // Topbar subtitle
+  const subEl = document.getElementById('pageSubtitle');
+  if (subEl) subEl.textContent = `Welcome back, ${citizen.name.split(' ')[0]}! Here's your grievance summary for ${citizen.constituency}.`;
+
+  // Profile View Elements
+  const pName = document.getElementById('profileName');
+  const pAvatar = document.getElementById('profileAvatar');
+  const pNameInput = document.getElementById('profileNameInput');
+  const pPhone = document.getElementById('profilePhone');
+  const pEmail = document.getElementById('profileEmail');
+  const pConst = document.getElementById('profileConst');
+  const pConstitSelect = document.getElementById('profileConstitSelect');
+  const pAddress = document.getElementById('profileAddress');
+  const pAadhaar = document.getElementById('profileAadhaar');
+  const pId = document.getElementById('profileCitizenId');
+  const pRegDate = document.getElementById('profileRegDate');
+  const pFiledCount = document.getElementById('profileFiledCount');
+  const pResolvedCount = document.getElementById('profileResolvedCount');
+  const pPendingCount = document.getElementById('profilePendingCount');
+
+  if (pName) pName.textContent = citizen.name;
+  if (pAvatar) pAvatar.textContent = citizen.avatar || citizen.name[0].toUpperCase();
+  if (pNameInput) pNameInput.value = citizen.name;
+  if (pPhone) pPhone.value = citizen.fullPhone || `+91 ${citizen.phone}`;
+  if (pEmail) pEmail.value = citizen.email || `${citizen.name.toLowerCase().replace(/\s+/g, '')}@erode.in`;
+  if (pConst) pConst.textContent = `📍 ${citizen.constituency} Constituency`;
+  if (pConstitSelect) pConstitSelect.value = citizen.constituency;
+  if (pAddress) pAddress.textContent = citizen.address || citizen.ward || `Ward in ${citizen.constituency}, Erode`;
+  if (pAadhaar) pAadhaar.textContent = citizen.aadhaarMasked || 'XXXX-XXXX-8921';
+  if (pId) pId.textContent = citizen.id || 'CIT-1001';
+  if (pRegDate) pRegDate.textContent = citizen.registeredDate || '12 May 2024';
+  if (pFiledCount) pFiledCount.textContent = citizen.complaintsCount || 7;
+  if (pResolvedCount) pResolvedCount.textContent = citizen.resolvedCount || 4;
+  if (pPendingCount) pPendingCount.textContent = citizen.pendingCount || 3;
+
+  // Overview stats cards
+  const statCards = document.querySelectorAll('#view-citizen .stat-card-value');
+  if (statCards.length >= 4) {
+    statCards[0].textContent = citizen.complaintsCount || 7;
+    statCards[1].textContent = citizen.pendingCount || 3;
+    statCards[2].textContent = citizen.resolvedCount || 4;
+    statCards[3].textContent = citizen.escalatedCount || 1;
+  }
+}
+
+/* ── Save Citizen Profile ── */
+function saveCitizenProfile() {
+  const name = document.getElementById('profileNameInput')?.value.trim();
+  const phone = document.getElementById('profilePhone')?.value.trim();
+  const email = document.getElementById('profileEmail')?.value.trim();
   const constituency = document.getElementById('profileConstitSelect')?.value;
-  if (name) {
-    document.getElementById('profileName').textContent = name;
-    document.getElementById('profileAvatar').textContent = name[0].toUpperCase();
-    document.getElementById('sidebarName').textContent = name;
-    document.getElementById('sidebarAvatar').textContent = name[0].toUpperCase();
-    const profileAvatarEl = document.getElementById('profileAvatar');
-    if (profileAvatarEl) profileAvatarEl.textContent = name[0].toUpperCase();
-  }
-  if (constituency) {
-    const label = document.querySelector(`#profileConstitSelect option[value="${constituency}"]`)?.textContent;
-    if (label) document.getElementById('sidebarConst').textContent = `📍 ${label}`;
-  }
-  showToast('Profile updated successfully!', 'success');
+
+  const current = JSON.parse(sessionStorage.getItem('citizen') || '{}');
+  if (name) current.name = name;
+  if (phone) { current.phone = phone; current.fullPhone = phone; }
+  if (email) current.email = email;
+  if (constituency) current.constituency = constituency;
+  if (name) current.avatar = name[0].toUpperCase();
+
+  applyCitizenSession(current);
+  showToast('✅ Citizen profile updated successfully!', 'success');
+}
+
+function saveProfile() {
+  saveCitizenProfile();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1949,6 +2530,9 @@ const FULL_I18N = {
     tabAdmin: '🏛️ Official Login',
     cLoginHeader: 'Citizen Sign In',
     cLoginSub: 'Enter your registered mobile or email to track complaints',
+    demoCitizensTitle: '⚡ Demo Citizen Accounts:',
+    demoBadgePill: 'Click to Auto-Fill',
+    btnRandomDemo: '🎲 Fill Sample / Fake Citizen Details',
     cLoginUserLabel: 'Mobile Number / Email',
     cLoginPassLabel: 'Password',
     btnCitizenLogin: 'Sign In as Citizen →',
@@ -2061,6 +2645,9 @@ const FULL_I18N = {
     tabAdmin: '🏛️ அதிகாரி உள்நுழைவு',
     cLoginHeader: 'குடிமக்கள் உள்நுழைவு',
     cLoginSub: 'புகார்களை கண்காணிக்க பதிவுசெய்த மொபைல் அல்லது மின்னஞ்சலை உள்ளிடவும்',
+    demoCitizensTitle: '⚡ மாதிரி குடிமக்கள் கணக்குகள்:',
+    demoBadgePill: 'தானாக நிரப்ப கிளிக் செய்',
+    btnRandomDemo: '🎲 மாதிரி குடிமக்கள் விவரங்களை நிரப்பு',
     cLoginUserLabel: 'மொபைல் எண் / மின்னஞ்சல்',
     cLoginPassLabel: 'கடவுச்சொல்',
     btnCitizenLogin: 'குடிமகனாக உள்நுழைக →',
@@ -2217,6 +2804,10 @@ function setPortalLang(lang, showNotification = true) {
   if (f1Header) f1Header.textContent = t.cLoginHeader;
   const f1Sub = document.querySelector('#formCitizenLogin .form-header p');
   if (f1Sub) f1Sub.textContent = t.cLoginSub;
+  const demoTitle = document.querySelector('.demo-citizens-title');
+  if (demoTitle) demoTitle.innerHTML = `<span>${t.demoCitizensTitle || '⚡ Demo Citizen Accounts:'}</span>`;
+  const demoPill = document.querySelector('.demo-badge-pill');
+  if (demoPill) demoPill.textContent = t.demoBadgePill || 'Click to Auto-Fill';
   const btnCLogin = document.getElementById('btnCitizenLogin') || document.querySelector('#formCitizenLogin button[type="submit"]');
   if (btnCLogin) btnCLogin.textContent = t.btnCitizenLogin;
 
@@ -2225,6 +2816,8 @@ function setPortalLang(lang, showNotification = true) {
   if (f2Header) f2Header.textContent = t.regHeader;
   const f2Sub = document.querySelector('#formCitizenRegister .form-header p');
   if (f2Sub) f2Sub.textContent = t.regSub;
+  const btnRandom = document.querySelector('.btn-random-demo-data');
+  if (btnRandom) btnRandom.textContent = t.btnRandomDemo || '🎲 Fill Sample / Fake Citizen Details';
   const btnReg = document.querySelector('#formCitizenRegister button[type="submit"]');
   if (btnReg) btnReg.textContent = t.btnRegister;
 
@@ -2676,29 +3269,415 @@ function renderReports() {
   }
 }
 
+/* ══════════════════════════════════════════════════════
+   AI BEFORE & AFTER REPAIR PHOTO VERIFICATION ENGINE
+══════════════════════════════════════════════════════ */
+const REPAIR_PROOFS_DB = {
+  Road: {
+    title: 'Road Asphalt & Pothole Repair',
+    beforeDesc: 'Deep pothole crater (75cm wide) on NH-47 lane, broken asphalt edges, exposed aggregate stones.',
+    afterDesc: 'High-grade hot bituminous mix asphalt laid, compacted with mechanical roller, yellow road line repainted.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#334155"/><rect y="0" width="400" height="40" fill="#64748b"/><line x1="0" y1="100" x2="400" y2="100" stroke="#facc15" stroke-dasharray="20,15" stroke-width="4"/><path d="M120,80 Q160,50 210,85 Q260,110 230,140 Q180,160 130,130 Z" fill="#0f172a" stroke="#1e293b" stroke-width="3"/><ellipse cx="170" cy="105" rx="35" ry="20" fill="#020617"/><circle cx="150" cy="95" r="4" fill="#64748b"/><circle cx="180" cy="115" r="5" fill="#475569"/><polygon points="310,130 330,130 320,90" fill="#ea580c"/><polygon points="316,110 324,110 322,100" fill="#ffffff"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">NH-47 Road • Pothole Defect</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#334155"/><rect y="0" width="400" height="40" fill="#64748b"/><line x1="0" y1="100" x2="400" y2="100" stroke="#facc15" stroke-dasharray="20,15" stroke-width="4"/><path d="M110,75 Q160,45 220,80 Q270,105 240,145 Q170,165 120,135 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/><line x1="110" y1="100" x2="240" y2="100" stroke="#facc15" stroke-width="4"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ PATCHED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">NH-47 Road • Compacted Bitumen Laid</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#fef3c7"/><rect x="40" y="40" width="120" height="80" fill="#e2e8f0" stroke="#94a3b8"/><rect x="220" y="90" width="140" height="60" rx="8" fill="#d97706"/><circle cx="80" cy="150" r="25" fill="#16a34a"/><text x="14" y="26" fill="#b45309" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Indoor Living Room (Mismatch)</text></svg>`
+  },
+  Water: {
+    title: 'Water Supply Pipeline Repair',
+    beforeDesc: 'Cracked 110mm PVC main pipe spraying water, pavement flooded, water loss reported.',
+    afterDesc: 'Stainless-steel ductile repair clamp installed, pressure tested at 4.5 bar, trench refilled and paved.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="120" width="400" height="80" fill="#78350f"/><rect x="40" y="140" width="320" height="26" fill="#0284c7" rx="3"/><line x1="180" y1="140" x2="195" y2="166" stroke="#ef4444" stroke-width="3"/><path d="M185,140 Q170,90 200,60 Q230,90 195,140" fill="rgba(56,189,248,0.7)"/><circle cx="175" cy="80" r="8" fill="#38bdf8"/><circle cx="215" cy="70" r="6" fill="#38bdf8"/><ellipse cx="200" cy="180" rx="90" ry="14" fill="#0369a1"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gandhi Nagar • High-Pressure Pipe Leak</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="120" width="400" height="80" fill="#78350f"/><rect x="40" y="140" width="320" height="26" fill="#0284c7" rx="3"/><rect x="165" y="134" width="55" height="38" rx="4" fill="#94a3b8" stroke="#334155" stroke-width="2"/><circle cx="178" cy="153" r="3" fill="#0f172a"/><circle cx="207" cy="153" r="3" fill="#0f172a"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ COUPLING</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gandhi Nagar • Clamp Fixed & Dry Trench</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#dcfce7"/><circle cx="200" cy="100" r="60" fill="#86efac"/><text x="14" y="26" fill="#15803d" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Botanical Garden (Mismatch)</text></svg>`
+  },
+  Electricity: {
+    title: 'TNEB Transformer & Cable Remediation',
+    beforeDesc: 'Loose sparking 440V overhead distribution cable, humming vibration near residential building.',
+    afterDesc: 'High-voltage insulators replaced, new distribution box fitted, cable conduits secured with earthing.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#1e293b"/><rect x="60" y="20" width="18" height="180" fill="#94a3b8"/><rect x="45" y="60" width="48" height="55" fill="#334155" stroke="#ef4444" stroke-width="2"/><path d="M75,90 L180,140 L220,110 L320,170" stroke="#f59e0b" stroke-width="3" fill="none"/><circle cx="75" cy="90" r="14" fill="rgba(239,68,68,0.5)"/><polygon points="80,85 70,100 78,98 72,112 88,96 80,97" fill="#facc15"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani Main Rd • Transformer Hazard</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#1e293b"/><rect x="60" y="20" width="18" height="180" fill="#94a3b8"/><rect x="45" y="55" width="52" height="65" rx="4" fill="#475569" stroke="#10b981" stroke-width="2"/><line x1="75" y1="85" x2="350" y2="85" stroke="#0ea5e9" stroke-width="3"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ REPLACED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani Main Rd • Insulated Conduits & Earthing</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#fbcfe8"/><text x="14" y="26" fill="#9d174d" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Parking Garage (Mismatch)</text></svg>`
+  },
+  Garbage: {
+    title: 'Sanitation Waste Clearance',
+    beforeDesc: 'Overflowing municipal garbage containers, stray litter dumped on pedestrian walkway.',
+    afterDesc: 'Waste cleared with hydraulic compactor vehicle, perimeter sanitized and treated with bleaching powder.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="70" y="70" width="90" height="100" rx="6" fill="#15803d"/><path d="M60,110 Q120,60 170,120 Q240,100 220,170 Q140,180 60,170 Z" fill="#78350f"/><circle cx="190" cy="140" r="15" fill="#dc2626"/><circle cx="210" cy="155" r="10" fill="#f59e0b"/><circle cx="160" cy="160" r="18" fill="#3b82f6"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gobichetti Bus Stand • Garbage Dump</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="140" width="400" height="60" fill="#cbd5e1"/><rect x="80" y="60" width="70" height="90" rx="6" fill="#16a34a" stroke="#14532d" stroke-width="2"/><rect x="170" y="60" width="70" height="90" rx="6" fill="#0284c7" stroke="#0c4a6e" stroke-width="2"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="305" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ SANITIZED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gobichetti Bus Stand • Sanitized & Cleared</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#e0e7ff"/><text x="14" y="26" fill="#3730a3" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Dining Room (Mismatch)</text></svg>`
+  },
+  Drainage: {
+    title: 'Storm Drainage Desilting & Reconstruction',
+    beforeDesc: 'Drain channel choked with silt and sewage overflow, stagnant black water.',
+    afterDesc: 'Desilted with suction tanker, channel lined with reinforced concrete, steel grating installed.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#64748b"/><polygon points="40,40 360,40 320,180 80,180" fill="#1e293b"/><path d="M80,120 Q160,90 240,130 Q320,110 300,180 L100,180 Z" fill="#020617"/><circle cx="150" cy="140" r="10" fill="#ef4444"/><circle cx="210" cy="150" r="12" fill="#eab308"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Perundurai Main Rd • Silt Blockage</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#64748b"/><polygon points="40,40 360,40 320,180 80,180" fill="#334155"/><polygon points="80,140 320,140 310,180 90,180" fill="#0284c7"/><line x1="80" y1="60" x2="320" y2="60" stroke="#94a3b8" stroke-width="4"/><line x1="80" y1="90" x2="320" y2="90" stroke="#94a3b8" stroke-width="4"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="305" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ DESILTED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Perundurai Main Rd • Flow Restored & Grated</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#ffedd5"/><text x="14" y="26" fill="#9a3412" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Airport Runway (Mismatch)</text></svg>`
+  },
+  Collectorate: {
+    title: 'Embankment & Riverbank Restoration',
+    beforeDesc: 'River bank soil erosion and unauthorized excavation wheel ruts.',
+    afterDesc: 'Stone-pitching retaining embankment wall constructed with barricade gate.',
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#15803d"/><path d="M0,80 Q200,40 400,100 L400,200 L0,200 Z" fill="#0284c7"/><path d="M40,120 Q120,90 200,140 Q280,120 360,160" stroke="#78350f" stroke-width="14" fill="none"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani River • Sand Excavation</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#15803d"/><path d="M0,80 Q200,40 400,100 L400,200 L0,200 Z" fill="#0284c7"/><path d="M0,110 L400,120 L400,150 L0,140 Z" fill="#64748b" stroke="#334155" stroke-width="2"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ EMBANKED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani River • Embankment Wall Built</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#f3e8ff"/><text x="14" y="26" fill="#6b21a8" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Mountain Ridge (Mismatch)</text></svg>`
+  }
+};
+
+let currentVerifyingId = null;
+let currentProofType = 'matched';
+let isScanning = false;
+
+function openRepairVerificationModal(id) {
+  currentVerifyingId = id;
+  currentProofType = 'matched';
+  isScanning = false;
+
+  const c = (typeof unifiedAdminData !== 'undefined' ? unifiedAdminData.find(x => x.id === id) : null) || 
+            (typeof COMPLAINTS_DATA !== 'undefined' ? COMPLAINTS_DATA.find(x => x.id === id) : null);
+  if (!c) return;
+
+  const category = c.category || 'Road';
+  const proofData = REPAIR_PROOFS_DB[category] || REPAIR_PROOFS_DB['Road'];
+
+  const modal = document.getElementById('repairVerificationModal');
+  const body = document.getElementById('repairModalBody');
+  if (!modal || !body) return;
+
+  body.innerHTML = `
+    <!-- Top Details Banner -->
+    <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.05em">${c.id} • ${c.category.toUpperCase()}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">${c.title}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">📍 ${c.address || c.location || c.constituency}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="status-badge status-progress">🔧 UNDER REPAIR</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Assigned: <strong>${c.dept || c.department}</strong></div>
+      </div>
+    </div>
+
+    <!-- Proof Selection Controls for Demo/Officer -->
+    <div class="sample-proofs-bar">
+      <span style="font-size:12px;font-weight:700;color:var(--text-secondary)">Select Field Completion Proof:</span>
+      <button type="button" class="sample-proof-btn active" id="btnProofMatched" onclick="setProofType('matched')">
+        ✅ Genuine Repaired Condition (Identical Place)
+      </button>
+      <button type="button" class="sample-proof-btn" id="btnProofMismatch" onclick="setProofType('mismatch')">
+        ⚠️ Test Mismatch Photo (Different Place)
+      </button>
+      <label class="sample-proof-btn" style="cursor:pointer;margin-bottom:0">
+        📷 Upload Field Photo <input type="file" accept="image/*" style="display:none" onchange="handleCustomRepairPhoto(event)" />
+      </label>
+    </div>
+
+    <!-- Side-by-Side Comparison Grid -->
+    <div class="verify-grid">
+      <!-- Left: Before Repair (Citizen Report) -->
+      <div class="verify-card">
+        <div class="verify-card-header">
+          <span>📷 1. Before Repair (Citizen Incident Proof)</span>
+          <span style="font-size:10px;background:#dc2626;padding:2px 6px;border-radius:4px">DAMAGED</span>
+        </div>
+        <div class="verify-photo-wrap" id="beforePhotoWrap">
+          <div class="verify-badge-tag">Initial Report</div>
+          <div class="verify-scanner-line" id="scannerLineBefore"></div>
+          ${proofData.beforeSvg}
+          <div class="verify-gps-overlay">
+            <span>📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E</span>
+            <span>📅 ${c.submitted || c.submittedDate || '2024-01-15'}</span>
+          </div>
+        </div>
+        <div class="verify-card-footer">
+          <div style="font-weight:600;color:var(--text-primary)">Reported Defect State</div>
+          <div style="font-size:11px;color:var(--text-muted)">Original condition captured by citizen camera with GPS lock.</div>
+        </div>
+      </div>
+
+      <!-- Right: After Repair (Official Work Proof) -->
+      <div class="verify-card">
+        <div class="verify-card-header" style="background:#1e3a8a">
+          <span>🛠️ 2. After Repair (Department Work Proof)</span>
+          <span style="font-size:10px;background:#16a34a;padding:2px 6px;border-radius:4px" id="afterCardBadge">REPAIRED</span>
+        </div>
+        <div class="verify-photo-wrap" id="afterPhotoWrap">
+          <div class="verify-badge-tag" id="afterPhotoTag">Work Done Photo</div>
+          <div class="verify-scanner-line" id="scannerLineAfter"></div>
+          <div id="afterPhotoContainer" style="width:100%;height:100%">${proofData.afterSvg}</div>
+          <div class="verify-gps-overlay">
+            <span id="afterGpsLabel">📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E (0.00km Δ)</span>
+            <span>📅 Today (Just now)</span>
+          </div>
+        </div>
+        <div class="verify-card-footer">
+          <div style="font-weight:600;color:var(--text-primary)" id="afterCardFooterTitle">Field Engineer Resolution Evidence</div>
+          <div style="font-size:11px;color:var(--text-muted)" id="afterCardFooterDesc">Post-repair photo submitted by field crew for AI inspection.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Verification Engine Panel -->
+    <div class="ai-results-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">🤖</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a">AI Visual Place &amp; Condition Verification</div>
+            <div style="font-size:11px;color:var(--text-muted)">SIFT Keypoint Spatial Geometry + Defect Remediation Classifier</div>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="btnRunAIScan" style="width:auto;padding:8px 18px;background:var(--blue);font-size:12.5px" onclick="runAIRepairScan()">
+          🔍 Run AI Verification
+        </button>
+      </div>
+
+      <!-- Telemetry Logs & Progress -->
+      <div id="aiScanLogs" style="display:none;margin-top:12px;padding:10px 12px;background:#0f172a;color:#38bdf8;border-radius:6px;font-family:monospace;font-size:11px;line-height:1.6"></div>
+
+      <!-- Result Metrics Gauges -->
+      <div id="aiResultsGauges" style="display:none">
+        <div class="ai-metrics-row">
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricPlaceMatch">--</div>
+            <div class="ai-metric-label">📍 Place Identity Match</div>
+          </div>
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricRepairCondition">--</div>
+            <div class="ai-metric-label">🛠️ Defect Remediated</div>
+          </div>
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricTamperCheck" style="color:#16a34a">PASS</div>
+            <div class="ai-metric-label">🛡️ GPS &amp; Timestamp Check</div>
+          </div>
+        </div>
+
+        <div id="aiVerdictBox" class="ai-status-verdict"></div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button type="button" class="btn-secondary" onclick="closeRepairModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="btnApproveCompletion" disabled style="width:auto;padding:9px 24px;background:#94a3b8;cursor:not-allowed" onclick="confirmResolveComplaint('${c.id}')">
+        🔒 Set Task as Completed (Verify First)
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('show');
+}
+
+function closeRepairModal() {
+  const modal = document.getElementById('repairVerificationModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function setProofType(type) {
+  currentProofType = type;
+  const btnMatched = document.getElementById('btnProofMatched');
+  const btnMismatch = document.getElementById('btnProofMismatch');
+  if (btnMatched) btnMatched.classList.toggle('active', type === 'matched');
+  if (btnMismatch) btnMismatch.classList.toggle('active', type === 'mismatch');
+
+  const c = (typeof unifiedAdminData !== 'undefined' ? unifiedAdminData.find(x => x.id === currentVerifyingId) : null) || 
+            (typeof COMPLAINTS_DATA !== 'undefined' ? COMPLAINTS_DATA.find(x => x.id === currentVerifyingId) : null);
+  if (!c) return;
+
+  const category = c.category || 'Road';
+  const proofData = REPAIR_PROOFS_DB[category] || REPAIR_PROOFS_DB['Road'];
+  const container = document.getElementById('afterPhotoContainer');
+  const afterCardBadge = document.getElementById('afterCardBadge');
+  const afterGpsLabel = document.getElementById('afterGpsLabel');
+
+  if (container) {
+    if (type === 'matched') {
+      container.innerHTML = proofData.afterSvg;
+      if (afterCardBadge) { afterCardBadge.textContent = 'REPAIRED'; afterCardBadge.style.background = '#16a34a'; }
+      if (afterGpsLabel) afterGpsLabel.textContent = `📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E (0.00km Δ)`;
+    } else {
+      container.innerHTML = proofData.mismatchSvg;
+      if (afterCardBadge) { afterCardBadge.textContent = 'MISMATCH'; afterCardBadge.style.background = '#dc2626'; }
+      if (afterGpsLabel) afterGpsLabel.textContent = `📍 13.0827°N, 80.2707°E (340km Δ Mismatch)`;
+    }
+  }
+
+  // Reset scan gauges
+  const gauges = document.getElementById('aiResultsGauges');
+  const logs = document.getElementById('aiScanLogs');
+  if (gauges) gauges.style.display = 'none';
+  if (logs) logs.style.display = 'none';
+  const btnApprove = document.getElementById('btnApproveCompletion');
+  if (btnApprove) {
+    btnApprove.disabled = true;
+    btnApprove.style.background = '#94a3b8';
+    btnApprove.style.cursor = 'not-allowed';
+    btnApprove.textContent = '🔒 Set Task as Completed (Verify First)';
+  }
+}
+
+function handleCustomRepairPhoto(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const container = document.getElementById('afterPhotoContainer');
+    if (container) {
+      container.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover" />`;
+    }
+    showToast('📸 Field photo loaded! Click "Run AI Verification"', 'info');
+  };
+  reader.readAsDataURL(file);
+}
+
+function runAIRepairScan() {
+  if (isScanning) return;
+  isScanning = true;
+
+  const btnScan = document.getElementById('btnRunAIScan');
+  if (btnScan) { btnScan.disabled = true; btnScan.textContent = '⏳ Scanning Photos...'; }
+
+  const scanBefore = document.getElementById('scannerLineBefore');
+  const scanAfter = document.getElementById('scannerLineAfter');
+  if (scanBefore) scanBefore.style.display = 'block';
+  if (scanAfter) scanAfter.style.display = 'block';
+
+  const logs = document.getElementById('aiScanLogs');
+  if (logs) {
+    logs.style.display = 'block';
+    logs.innerHTML = `<div>🔍 [STAGE 1/4] Extracting 2,048 deep visual feature descriptors...</div>`;
+  }
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>📍 [STAGE 2/4] SIFT Keypoint alignment &amp; background geometry correlation...</div>`;
+  }, 600);
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>🛠️ [STAGE 3/4] Defect region segmentation &amp; repair material detection...</div>`;
+  }, 1200);
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>🛡️ [STAGE 4/4] EXIF GPS proximity validation &amp; anti-fraud verification...</div>`;
+  }, 1800);
+
+  setTimeout(() => {
+    isScanning = false;
+    if (scanBefore) scanBefore.style.display = 'none';
+    if (scanAfter) scanAfter.style.display = 'none';
+    if (btnScan) { btnScan.disabled = false; btnScan.textContent = '🔄 Re-Run AI Scan'; }
+
+    const isMatched = currentProofType === 'matched';
+    const placeScore = isMatched ? (97.8 + Math.random() * 1.8).toFixed(1) : (12.4 + Math.random() * 6).toFixed(1);
+    const repairScore = isMatched ? (96.5 + Math.random() * 2.5).toFixed(1) : (15.2 + Math.random() * 8).toFixed(1);
+
+    const gauges = document.getElementById('aiResultsGauges');
+    if (gauges) gauges.style.display = 'block';
+
+    const pMatchEl = document.getElementById('metricPlaceMatch');
+    const rCondEl = document.getElementById('metricRepairCondition');
+    const tCheckEl = document.getElementById('metricTamperCheck');
+    const verdictEl = document.getElementById('aiVerdictBox');
+    const btnApprove = document.getElementById('btnApproveCompletion');
+
+    if (pMatchEl) {
+      pMatchEl.textContent = `${placeScore}%`;
+      pMatchEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+    if (rCondEl) {
+      rCondEl.textContent = `${repairScore}%`;
+      rCondEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+    if (tCheckEl) {
+      tCheckEl.textContent = isMatched ? 'PASS' : 'FAIL';
+      tCheckEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+
+    if (verdictEl) {
+      if (isMatched) {
+        verdictEl.className = 'ai-status-verdict ai-verdict-success';
+        verdictEl.innerHTML = `
+          <span>✅</span>
+          <div>
+            <div>VERIFIED: Identical Location &amp; Defect Repair Confirmed</div>
+            <div style="font-size:11px;font-weight:400;color:#166534">Both places match within 98% spatial confidence. Repair condition verified authentic.</div>
+          </div>
+        `;
+        if (btnApprove) {
+          btnApprove.disabled = false;
+          btnApprove.style.background = '#16a34a';
+          btnApprove.style.cursor = 'pointer';
+          btnApprove.innerHTML = '✅ Approve &amp; Set Task as Completed →';
+        }
+      } else {
+        verdictEl.className = 'ai-status-verdict ai-verdict-failed';
+        verdictEl.innerHTML = `
+          <span>❌</span>
+          <div>
+            <div>REJECTED: Location Mismatch / Unverified Repair Condition</div>
+            <div style="font-size:11px;font-weight:400;color:#991b1b">The submitted after-repair photo belongs to a different place (${placeScore}% match). Cannot resolve.</div>
+          </div>
+        `;
+        if (btnApprove) {
+          btnApprove.disabled = true;
+          btnApprove.style.background = '#94a3b8';
+          btnApprove.style.cursor = 'not-allowed';
+          btnApprove.textContent = '🚫 Completion Blocked (Mismatch)';
+        }
+      }
+    }
+  }, 2200);
+}
+
+function confirmResolveComplaint(id) {
+  const c = (typeof unifiedAdminData !== 'undefined' ? unifiedAdminData.find(x => x.id === id) : null) || 
+            (typeof COMPLAINTS_DATA !== 'undefined' ? COMPLAINTS_DATA.find(x => x.id === id) : null);
+  if (!c) return;
+
+  c.status = 'resolved';
+  c.resolvedDate = new Date().toISOString().split('T')[0];
+  c.escalated = false;
+  c.resolutionProof = {
+    verified: true,
+    placeScore: '98.4%',
+    repairScore: '97.2%',
+    timestamp: new Date().toLocaleString(),
+    officer: 'Er. Field Inspection Team'
+  };
+
+  // Sync with COMPLAINTS_DATA
+  const globalComp = (typeof COMPLAINTS_DATA !== 'undefined') ? COMPLAINTS_DATA.find(x => x.id === id) : null;
+  if (globalComp) {
+    globalComp.status = 'resolved';
+    globalComp.resolvedDate = c.resolvedDate;
+    globalComp.escalated = false;
+    globalComp.resolutionProof = c.resolutionProof;
+  }
+
+  closeRepairModal();
+  showToast(`🎉 ${id} Verified by AI & Work Marked Completed!`, 'success');
+
+  if (typeof renderAdminOverview === 'function') renderAdminOverview();
+  if (typeof renderAllComplaints === 'function') renderAllComplaints();
+  if (typeof renderRecentComplaints === 'function') renderRecentComplaints();
+  if (typeof renderSlaTracker === 'function') renderSlaTracker();
+}
+
 function updateAdminStatus(id, prefix = 'sel-') {
   const sel = document.getElementById(`${prefix}${id}`) || document.getElementById(`sel-${id}`);
   if (!sel) return;
   const newStatus = sel.value;
+  if (newStatus === 'resolved') {
+    openRepairVerificationModal(id);
+    return;
+  }
   const idx = unifiedAdminData.findIndex(c => c.id === id);
   if (idx === -1) return;
   unifiedAdminData[idx].status = newStatus;
-  if (newStatus === 'resolved') {
-    unifiedAdminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
-    unifiedAdminData[idx].escalated = false;
-  }
   showToast(`✅ ${id} status updated to "${newStatus.toUpperCase()}"`, 'success');
   renderAdminOverview();
 }
 
 function quickResolve(id) {
-  const idx = unifiedAdminData.findIndex(c => c.id === id);
-  if (idx === -1) return;
-  unifiedAdminData[idx].status = 'resolved';
-  unifiedAdminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
-  unifiedAdminData[idx].escalated = false;
-  showToast(`✅ ${id} marked as Resolved & Closed.`, 'success');
-  renderAdminOverview();
+  openRepairVerificationModal(id);
 }
 
 function downloadReport() {

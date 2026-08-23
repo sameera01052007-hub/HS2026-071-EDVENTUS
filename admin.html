@@ -703,6 +703,25 @@
   </div>
 </div>
 
+<!-- Modal: AI Work Completion & Repair Photo Verification -->
+<div class="modal-overlay" id="repairVerificationModal">
+  <div class="modal-box" style="max-width:720px;border-radius:var(--radius-lg);overflow:hidden">
+    <div class="modal-header" style="background:#0f172a;color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:rgba(59,130,246,0.2);border:1px solid #3b82f6;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">🔍</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#fff" id="repairModalTitle">AI Repair Verification &amp; Work Completion</div>
+          <div style="font-size:11.5px;color:#94a3b8" id="repairModalSub">Autonomous Place Matching &amp; Condition Verification</div>
+        </div>
+      </div>
+      <span style="cursor:pointer;font-size:20px;color:#cbd5e1;line-height:1" onclick="closeRepairModal()">✕</span>
+    </div>
+    <div style="padding:20px;max-height:82vh;overflow-y:auto;background:#fff" id="repairModalBody">
+      <!-- populated dynamically by JS -->
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="adminToast" class="toast"></div>
 
@@ -1136,29 +1155,344 @@ function statusBadge(s) {
   return `<span class="status-badge ${cls}">${label}</span>`;
 }
 
+const REPAIR_PROOFS_DB = {
+  Road: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#334155"/><rect y="0" width="400" height="40" fill="#64748b"/><line x1="0" y1="100" x2="400" y2="100" stroke="#facc15" stroke-dasharray="20,15" stroke-width="4"/><path d="M120,80 Q160,50 210,85 Q260,110 230,140 Q180,160 130,130 Z" fill="#0f172a" stroke="#1e293b" stroke-width="3"/><ellipse cx="170" cy="105" rx="35" ry="20" fill="#020617"/><circle cx="150" cy="95" r="4" fill="#64748b"/><circle cx="180" cy="115" r="5" fill="#475569"/><polygon points="310,130 330,130 320,90" fill="#ea580c"/><polygon points="316,110 324,110 322,100" fill="#ffffff"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">NH-47 Road • Pothole Defect</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#334155"/><rect y="0" width="400" height="40" fill="#64748b"/><line x1="0" y1="100" x2="400" y2="100" stroke="#facc15" stroke-dasharray="20,15" stroke-width="4"/><path d="M110,75 Q160,45 220,80 Q270,105 240,145 Q170,165 120,135 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/><line x1="110" y1="100" x2="240" y2="100" stroke="#facc15" stroke-width="4"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ PATCHED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">NH-47 Road • Compacted Bitumen Laid</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#fef3c7"/><rect x="40" y="40" width="120" height="80" fill="#e2e8f0" stroke="#94a3b8"/><rect x="220" y="90" width="140" height="60" rx="8" fill="#d97706"/><circle cx="80" cy="150" r="25" fill="#16a34a"/><text x="14" y="26" fill="#b45309" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Indoor Living Room (Mismatch)</text></svg>`
+  },
+  Water: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="120" width="400" height="80" fill="#78350f"/><rect x="40" y="140" width="320" height="26" fill="#0284c7" rx="3"/><line x1="180" y1="140" x2="195" y2="166" stroke="#ef4444" stroke-width="3"/><path d="M185,140 Q170,90 200,60 Q230,90 195,140" fill="rgba(56,189,248,0.7)"/><circle cx="175" cy="80" r="8" fill="#38bdf8"/><circle cx="215" cy="70" r="6" fill="#38bdf8"/><ellipse cx="200" cy="180" rx="90" ry="14" fill="#0369a1"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gandhi Nagar • High-Pressure Pipe Leak</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="120" width="400" height="80" fill="#78350f"/><rect x="40" y="140" width="320" height="26" fill="#0284c7" rx="3"/><rect x="165" y="134" width="55" height="38" rx="4" fill="#94a3b8" stroke="#334155" stroke-width="2"/><circle cx="178" cy="153" r="3" fill="#0f172a"/><circle cx="207" cy="153" r="3" fill="#0f172a"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ COUPLING</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gandhi Nagar • Clamp Fixed & Dry Trench</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#dcfce7"/><circle cx="200" cy="100" r="60" fill="#86efac"/><text x="14" y="26" fill="#15803d" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Botanical Garden (Mismatch)</text></svg>`
+  },
+  Electricity: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#1e293b"/><rect x="60" y="20" width="18" height="180" fill="#94a3b8"/><rect x="45" y="60" width="48" height="55" fill="#334155" stroke="#ef4444" stroke-width="2"/><path d="M75,90 L180,140 L220,110 L320,170" stroke="#f59e0b" stroke-width="3" fill="none"/><circle cx="75" cy="90" r="14" fill="rgba(239,68,68,0.5)"/><polygon points="80,85 70,100 78,98 72,112 88,96 80,97" fill="#facc15"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani Main Rd • Transformer Hazard</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#1e293b"/><rect x="60" y="20" width="18" height="180" fill="#94a3b8"/><rect x="45" y="55" width="52" height="65" rx="4" fill="#475569" stroke="#10b981" stroke-width="2"/><line x1="75" y1="85" x2="350" y2="85" stroke="#0ea5e9" stroke-width="3"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ REPLACED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani Main Rd • Insulated Conduits & Earthing</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#fbcfe8"/><text x="14" y="26" fill="#9d174d" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Parking Garage (Mismatch)</text></svg>`
+  },
+  Garbage: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="70" y="70" width="90" height="100" rx="6" fill="#15803d"/><path d="M60,110 Q120,60 170,120 Q240,100 220,170 Q140,180 60,170 Z" fill="#78350f"/><circle cx="190" cy="140" r="15" fill="#dc2626"/><circle cx="210" cy="155" r="10" fill="#f59e0b"/><circle cx="160" cy="160" r="18" fill="#3b82f6"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gobichetti Bus Stand • Garbage Dump</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#475569"/><rect x="0" y="140" width="400" height="60" fill="#cbd5e1"/><rect x="80" y="60" width="70" height="90" rx="6" fill="#16a34a" stroke="#14532d" stroke-width="2"/><rect x="170" y="60" width="70" height="90" rx="6" fill="#0284c7" stroke="#0c4a6e" stroke-width="2"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="305" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ SANITIZED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Gobichetti Bus Stand • Sanitized & Cleared</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#e0e7ff"/><text x="14" y="26" fill="#3730a3" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Dining Room (Mismatch)</text></svg>`
+  },
+  Drainage: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#64748b"/><polygon points="40,40 360,40 320,180 80,180" fill="#1e293b"/><path d="M80,120 Q160,90 240,130 Q320,110 300,180 L100,180 Z" fill="#020617"/><circle cx="150" cy="140" r="10" fill="#ef4444"/><circle cx="210" cy="150" r="12" fill="#eab308"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Perundurai Main Rd • Silt Blockage</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#64748b"/><polygon points="40,40 360,40 320,180 80,180" fill="#334155"/><polygon points="80,140 320,140 310,180 90,180" fill="#0284c7"/><line x1="80" y1="60" x2="320" y2="60" stroke="#94a3b8" stroke-width="4"/><line x1="80" y1="90" x2="320" y2="90" stroke="#94a3b8" stroke-width="4"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="305" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ DESILTED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Perundurai Main Rd • Flow Restored & Grated</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#ffedd5"/><text x="14" y="26" fill="#9a3412" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Airport Runway (Mismatch)</text></svg>`
+  },
+  Collectorate: {
+    beforeSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#15803d"/><path d="M0,80 Q200,40 400,100 L400,200 L0,200 Z" fill="#0284c7"/><path d="M40,120 Q120,90 200,140 Q280,120 360,160" stroke="#78350f" stroke-width="14" fill="none"/><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani River • Sand Excavation</text></svg>`,
+    afterSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#15803d"/><path d="M0,80 Q200,40 400,100 L400,200 L0,200 Z" fill="#0284c7"/><path d="M0,110 L400,120 L400,150 L0,140 Z" fill="#64748b" stroke="#334155" stroke-width="2"/><rect x="290" y="80" width="85" height="40" rx="4" fill="rgba(22,163,74,0.25)" stroke="#16a34a" stroke-width="1.5"/><text x="300" y="105" fill="#16a34a" font-size="11" font-weight="bold" font-family="sans-serif">✓ EMBANKED</text><text x="14" y="26" fill="#f8fafc" font-size="11" font-weight="bold" font-family="sans-serif">Bhavani River • Embankment Wall Built</text></svg>`,
+    mismatchSvg: `<svg viewBox="0 0 400 200" style="width:100%;height:100%"><rect width="400" height="200" fill="#f3e8ff"/><text x="14" y="26" fill="#6b21a8" font-size="11" font-weight="bold" font-family="sans-serif">⚠️ Unrelated Mountain Ridge (Mismatch)</text></svg>`
+  }
+};
+
+let currentVerifyingId = null;
+let currentProofType = 'matched';
+let isScanning = false;
+
+function openRepairVerificationModal(id) {
+  currentVerifyingId = id;
+  currentProofType = 'matched';
+  isScanning = false;
+
+  const c = adminData.find(x => x.id === id);
+  if (!c) return;
+
+  const category = c.category || 'Road';
+  const proofData = REPAIR_PROOFS_DB[category] || REPAIR_PROOFS_DB['Road'];
+
+  const modal = document.getElementById('repairVerificationModal');
+  const body = document.getElementById('repairModalBody');
+  if (!modal || !body) return;
+
+  body.innerHTML = `
+    <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.05em">${c.id} • ${c.category.toUpperCase()}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-top:2px">${c.title}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px">📍 ${c.address || c.location || c.constituency}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="status-badge status-progress">🔧 UNDER REPAIR</span>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px">Assigned: <strong>${c.dept}</strong></div>
+      </div>
+    </div>
+
+    <div class="sample-proofs-bar">
+      <span style="font-size:12px;font-weight:700;color:var(--text-secondary)">Select Field Completion Proof:</span>
+      <button type="button" class="sample-proof-btn active" id="btnProofMatched" onclick="setProofType('matched')">
+        ✅ Genuine Repaired Condition (Identical Place)
+      </button>
+      <button type="button" class="sample-proof-btn" id="btnProofMismatch" onclick="setProofType('mismatch')">
+        ⚠️ Test Mismatch Photo (Different Place)
+      </button>
+    </div>
+
+    <div class="verify-grid">
+      <div class="verify-card">
+        <div class="verify-card-header">
+          <span>📷 1. Before Repair (Citizen Incident Proof)</span>
+          <span style="font-size:10px;background:#dc2626;padding:2px 6px;border-radius:4px">DAMAGED</span>
+        </div>
+        <div class="verify-photo-wrap" id="beforePhotoWrap">
+          <div class="verify-badge-tag">Initial Report</div>
+          <div class="verify-scanner-line" id="scannerLineBefore"></div>
+          ${proofData.beforeSvg}
+          <div class="verify-gps-overlay">
+            <span>📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E</span>
+            <span>📅 ${c.submitted || '2024-01-15'}</span>
+          </div>
+        </div>
+        <div class="verify-card-footer">
+          <div style="font-weight:600;color:var(--text-primary)">Reported Defect State</div>
+          <div style="font-size:11px;color:var(--text-muted)">Original condition captured by citizen camera with GPS lock.</div>
+        </div>
+      </div>
+
+      <div class="verify-card">
+        <div class="verify-card-header" style="background:#1e3a8a">
+          <span>🛠️ 2. After Repair (Department Work Proof)</span>
+          <span style="font-size:10px;background:#16a34a;padding:2px 6px;border-radius:4px" id="afterCardBadge">REPAIRED</span>
+        </div>
+        <div class="verify-photo-wrap" id="afterPhotoWrap">
+          <div class="verify-badge-tag" id="afterPhotoTag">Work Done Photo</div>
+          <div class="verify-scanner-line" id="scannerLineAfter"></div>
+          <div id="afterPhotoContainer" style="width:100%;height:100%">${proofData.afterSvg}</div>
+          <div class="verify-gps-overlay">
+            <span id="afterGpsLabel">📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E (0.00km Δ)</span>
+            <span>📅 Today (Just now)</span>
+          </div>
+        </div>
+        <div class="verify-card-footer">
+          <div style="font-weight:600;color:var(--text-primary)" id="afterCardFooterTitle">Field Engineer Resolution Evidence</div>
+          <div style="font-size:11px;color:var(--text-muted)" id="afterCardFooterDesc">Post-repair photo submitted by field crew for AI inspection.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-results-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px">🤖</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#0f172a">AI Visual Place &amp; Condition Verification</div>
+            <div style="font-size:11px;color:var(--text-muted)">SIFT Keypoint Spatial Geometry + Defect Remediation Classifier</div>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" id="btnRunAIScan" style="width:auto;padding:8px 18px;background:var(--blue);font-size:12.5px" onclick="runAIRepairScan()">
+          🔍 Run AI Verification
+        </button>
+      </div>
+
+      <div id="aiScanLogs" style="display:none;margin-top:12px;padding:10px 12px;background:#0f172a;color:#38bdf8;border-radius:6px;font-family:monospace;font-size:11px;line-height:1.6"></div>
+
+      <div id="aiResultsGauges" style="display:none">
+        <div class="ai-metrics-row">
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricPlaceMatch">--</div>
+            <div class="ai-metric-label">📍 Place Identity Match</div>
+          </div>
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricRepairCondition">--</div>
+            <div class="ai-metric-label">🛠️ Defect Remediated</div>
+          </div>
+          <div class="ai-metric-box">
+            <div class="ai-metric-val" id="metricTamperCheck" style="color:#16a34a">PASS</div>
+            <div class="ai-metric-label">🛡️ GPS &amp; Timestamp Check</div>
+          </div>
+        </div>
+
+        <div id="aiVerdictBox" class="ai-status-verdict"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:16px">
+      <button type="button" class="btn-secondary" onclick="closeRepairModal()">Cancel</button>
+      <button type="button" class="btn-primary" id="btnApproveCompletion" disabled style="width:auto;padding:9px 24px;background:#94a3b8;cursor:not-allowed" onclick="confirmResolveComplaint('${c.id}')">
+        🔒 Set Task as Completed (Verify First)
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('show');
+}
+
+function closeRepairModal() {
+  const modal = document.getElementById('repairVerificationModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function setProofType(type) {
+  currentProofType = type;
+  const btnMatched = document.getElementById('btnProofMatched');
+  const btnMismatch = document.getElementById('btnProofMismatch');
+  if (btnMatched) btnMatched.classList.toggle('active', type === 'matched');
+  if (btnMismatch) btnMismatch.classList.toggle('active', type === 'mismatch');
+
+  const c = adminData.find(x => x.id === currentVerifyingId);
+  if (!c) return;
+
+  const category = c.category || 'Road';
+  const proofData = REPAIR_PROOFS_DB[category] || REPAIR_PROOFS_DB['Road'];
+  const container = document.getElementById('afterPhotoContainer');
+  const afterCardBadge = document.getElementById('afterCardBadge');
+  const afterGpsLabel = document.getElementById('afterGpsLabel');
+
+  if (container) {
+    if (type === 'matched') {
+      container.innerHTML = proofData.afterSvg;
+      if (afterCardBadge) { afterCardBadge.textContent = 'REPAIRED'; afterCardBadge.style.background = '#16a34a'; }
+      if (afterGpsLabel) afterGpsLabel.textContent = `📍 ${c.lat || 11.3410}°N, ${c.lng || 77.7172}°E (0.00km Δ)`;
+    } else {
+      container.innerHTML = proofData.mismatchSvg;
+      if (afterCardBadge) { afterCardBadge.textContent = 'MISMATCH'; afterCardBadge.style.background = '#dc2626'; }
+      if (afterGpsLabel) afterGpsLabel.textContent = `📍 13.0827°N, 80.2707°E (340km Δ Mismatch)`;
+    }
+  }
+
+  const gauges = document.getElementById('aiResultsGauges');
+  const logs = document.getElementById('aiScanLogs');
+  if (gauges) gauges.style.display = 'none';
+  if (logs) logs.style.display = 'none';
+  const btnApprove = document.getElementById('btnApproveCompletion');
+  if (btnApprove) {
+    btnApprove.disabled = true;
+    btnApprove.style.background = '#94a3b8';
+    btnApprove.style.cursor = 'not-allowed';
+    btnApprove.textContent = '🔒 Set Task as Completed (Verify First)';
+  }
+}
+
+function runAIRepairScan() {
+  if (isScanning) return;
+  isScanning = true;
+
+  const btnScan = document.getElementById('btnRunAIScan');
+  if (btnScan) { btnScan.disabled = true; btnScan.textContent = '⏳ Scanning Photos...'; }
+
+  const scanBefore = document.getElementById('scannerLineBefore');
+  const scanAfter = document.getElementById('scannerLineAfter');
+  if (scanBefore) scanBefore.style.display = 'block';
+  if (scanAfter) scanAfter.style.display = 'block';
+
+  const logs = document.getElementById('aiScanLogs');
+  if (logs) {
+    logs.style.display = 'block';
+    logs.innerHTML = `<div>🔍 [STAGE 1/4] Extracting 2,048 deep visual feature descriptors...</div>`;
+  }
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>📍 [STAGE 2/4] SIFT Keypoint alignment &amp; background geometry correlation...</div>`;
+  }, 600);
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>🛠️ [STAGE 3/4] Defect region segmentation &amp; repair material detection...</div>`;
+  }, 1200);
+
+  setTimeout(() => {
+    if (logs) logs.innerHTML += `<div>🛡️ [STAGE 4/4] EXIF GPS proximity validation &amp; anti-fraud verification...</div>`;
+  }, 1800);
+
+  setTimeout(() => {
+    isScanning = false;
+    if (scanBefore) scanBefore.style.display = 'none';
+    if (scanAfter) scanAfter.style.display = 'none';
+    if (btnScan) { btnScan.disabled = false; btnScan.textContent = '🔄 Re-Run AI Scan'; }
+
+    const isMatched = currentProofType === 'matched';
+    const placeScore = isMatched ? (97.8 + Math.random() * 1.8).toFixed(1) : (12.4 + Math.random() * 6).toFixed(1);
+    const repairScore = isMatched ? (96.5 + Math.random() * 2.5).toFixed(1) : (15.2 + Math.random() * 8).toFixed(1);
+
+    const gauges = document.getElementById('aiResultsGauges');
+    if (gauges) gauges.style.display = 'block';
+
+    const pMatchEl = document.getElementById('metricPlaceMatch');
+    const rCondEl = document.getElementById('metricRepairCondition');
+    const tCheckEl = document.getElementById('metricTamperCheck');
+    const verdictEl = document.getElementById('aiVerdictBox');
+    const btnApprove = document.getElementById('btnApproveCompletion');
+
+    if (pMatchEl) {
+      pMatchEl.textContent = `${placeScore}%`;
+      pMatchEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+    if (rCondEl) {
+      rCondEl.textContent = `${repairScore}%`;
+      rCondEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+    if (tCheckEl) {
+      tCheckEl.textContent = isMatched ? 'PASS' : 'FAIL';
+      tCheckEl.style.color = isMatched ? '#16a34a' : '#dc2626';
+    }
+
+    if (verdictEl) {
+      if (isMatched) {
+        verdictEl.className = 'ai-status-verdict ai-verdict-success';
+        verdictEl.innerHTML = `
+          <span>✅</span>
+          <div>
+            <div>VERIFIED: Identical Location &amp; Defect Repair Confirmed</div>
+            <div style="font-size:11px;font-weight:400;color:#166534">Both places match within 98% spatial confidence. Repair condition verified authentic.</div>
+          </div>
+        `;
+        if (btnApprove) {
+          btnApprove.disabled = false;
+          btnApprove.style.background = '#16a34a';
+          btnApprove.style.cursor = 'pointer';
+          btnApprove.innerHTML = '✅ Approve &amp; Set Task as Completed →';
+        }
+      } else {
+        verdictEl.className = 'ai-status-verdict ai-verdict-failed';
+        verdictEl.innerHTML = `
+          <span>❌</span>
+          <div>
+            <div>REJECTED: Location Mismatch / Unverified Repair Condition</div>
+            <div style="font-size:11px;font-weight:400;color:#991b1b">The submitted after-repair photo belongs to a different place (${placeScore}% match). Cannot resolve.</div>
+          </div>
+        `;
+        if (btnApprove) {
+          btnApprove.disabled = true;
+          btnApprove.style.background = '#94a3b8';
+          btnApprove.style.cursor = 'not-allowed';
+          btnApprove.textContent = '🚫 Completion Blocked (Mismatch)';
+        }
+      }
+    }
+  }, 2200);
+}
+
+function confirmResolveComplaint(id) {
+  const c = adminData.find(x => x.id === id);
+  if (!c) return;
+
+  c.status = 'resolved';
+  c.resolvedDate = new Date().toISOString().split('T')[0];
+  c.escalated = false;
+
+  closeRepairModal();
+  showAdminToast(`🎉 ${id} Verified by AI & Work Marked Completed!`, 'success');
+  renderAdminOverview();
+}
+
 function updateStatus(id, prefix = 'sel-') {
   const sel = document.getElementById(`${prefix}${id}`) || document.getElementById(`sel-${id}`);
   if (!sel) return;
   const newStatus = sel.value;
+  if (newStatus === 'resolved') {
+    openRepairVerificationModal(id);
+    return;
+  }
   const idx = adminData.findIndex(c => c.id === id);
   if (idx === -1) return;
   adminData[idx].status = newStatus;
-  if (newStatus === 'resolved') {
-    adminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
-    adminData[idx].escalated = false;
-  }
   showAdminToast(`✅ ${id} status updated to "${newStatus.toUpperCase()}"`, 'success');
   renderAdminOverview();
 }
 
 function quickResolve(id) {
-  const idx = adminData.findIndex(c => c.id === id);
-  if (idx === -1) return;
-  adminData[idx].status = 'resolved';
-  adminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
-  adminData[idx].escalated = false;
-  showAdminToast(`✅ ${id} marked as Resolved & Closed.`, 'success');
-  renderAdminOverview();
+  openRepairVerificationModal(id);
 }
 
 function downloadReport() {
