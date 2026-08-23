@@ -2320,6 +2320,10 @@ function setPortalLang(lang, showNotification = true) {
     }
   });
 
+  if (typeof syncBotLang === 'function') {
+    syncBotLang(lang);
+  }
+
   if (showNotification) {
     showToast(lang === 'ta' ? '✅ முழுப் பக்கமும் தமிழுக்கு மாற்றப்பட்டது!' : '✅ Complete portal switched to English!', 'success');
   }
@@ -3294,6 +3298,310 @@ function handleSendDirective(e) {
   renderDepartmentDirectives();
   updateAdminNotifBadges();
 }
+
+/* ══════════════════════════════════════════════════════
+   BILINGUAL CIVIC GUIDE CHATBOT ENGINE (EN & தமிழ்)
+══════════════════════════════════════════════════════ */
+let botLanguage = 'en';
+let botChatHistory = [];
+
+const BOT_DATA = {
+  en: {
+    title: 'Erode Civic Guide',
+    sub: 'Online • Bilingual Assistant',
+    placeholder: 'Ask a question or select a topic...',
+    welcome: `👋 <strong>Hello! Welcome to Erode Civic Complaint Portal.</strong><br/>I am your AI Assistant. I can guide you step-by-step on how to file complaints, use voice recording, track field engineers, access the Admin hub, and more.<br/><br/><em>How can I assist you today?</em>`,
+    chips: [
+      { label: '📝 How to file a complaint?', query: 'how to file a complaint' },
+      { label: '🎙️ How voice note works?', query: 'voice note recording' },
+      { label: '📍 GPS & Live Camera', query: 'gps location and camera' },
+      { label: '🚗 How officers navigate?', query: 'how officers navigate' },
+      { label: '🚨 SLA & Escalations', query: 'sla deadlines and escalations' },
+      { label: '🏛️ Official/Admin Login', query: 'official admin login' },
+      { label: '👑 Super Admin Access', query: 'super admin sanjai090' },
+      { label: '🔔 Higher Directives', query: 'higher official directives' },
+    ],
+    knowledge: [
+      {
+        keys: ['file', 'register', 'new complaint', 'how to report', 'submit', 'problem'],
+        answer: `📝 <strong>How to File a Civic Grievance (4 Simple Steps):</strong><br/>
+1. <strong>Step 1 (Category):</strong> Pick category (Roads, Water, Sanitation, TNEB, etc.) and write or speak your complaint.<br/>
+2. <strong>Step 2 (Evidence):</strong> Take a live photo with camera or upload proof, and verify GPS pinpoint.<br/>
+3. <strong>Step 3 (Urgency):</strong> Select severity (Normal, High, Emergency) and constituency.<br/>
+4. <strong>Step 4 (Submit):</strong> Review summary, accept declaration, and receive your tracking ID (e.g. <code>CMP-2024-001</code>).`,
+        action: { label: '➕ Open New Complaint Form', handler: "showMasterView('citizen'); navigateTo('new-complaint'); toggleCivicBot();" }
+      },
+      {
+        keys: ['voice', 'audio', 'mic', 'speak', 'record', 'speech'],
+        answer: `🎙️ <strong>Voice Note Recording Feature:</strong><br/>
+You don't need to type! Just click <strong>"🎙️ Speak in Tamil / English"</strong> in Step 1 of the Complaint Form. The portal uses browser Speech Recognition to transcribe your voice directly into text in either English or Tamil in real time.`,
+        action: { label: '🎙️ Try Voice Input Now', handler: "showMasterView('citizen'); navigateTo('new-complaint'); toggleCivicBot();" }
+      },
+      {
+        keys: ['gps', 'camera', 'photo', 'location', 'live photo', 'picture', 'map'],
+        answer: `📍 <strong>GPS & Live Camera Access:</strong><br/>
+• <strong>Live Camera:</strong> Captures verifiable evidence with timestamp and geo-tag to prevent fake complaints.<br/>
+• <strong>Automatic GPS:</strong> Click <em>"Detect GPS"</em> to pin your exact latitude & longitude coordinates. Field workers will use this exact spot for travel.`,
+        action: { label: '🗺️ View Public Grievance Map', handler: "showMasterView('citizen'); navigateTo('map'); toggleCivicBot();" }
+      },
+      {
+        keys: ['travel', 'navigate', 'google maps', 'officer travel', 'direction', 'repair'],
+        answer: `🚗 <strong>Field Travel & Navigation for Officers:</strong><br/>
+Every assigned grievance includes a <strong>"🚗 Travel Direction (Google Maps)"</strong> button. When clicked, field engineers get turn-by-turn driving directions straight from their current location to the exact repair site in Erode!`,
+        action: { label: '📋 View Department Tasks', handler: "showMasterView('admin'); adminNav('complaints'); toggleCivicBot();" }
+      },
+      {
+        keys: ['sla', 'escalat', 'deadline', 'overdue', 'delay', 'time limit', 'emergency'],
+        answer: `🚨 <strong>SLA & Automatic Escalation Protocol:</strong><br/>
+• <strong>Normal issues:</strong> 7 days SLA.<br/>
+• <strong>High Priority:</strong> 48 hours SLA.<br/>
+• <strong>Critical Hazards:</strong> 24 hours SLA.<br/>
+If unresolved past deadline, complaints are automatically highlighted in red with <code>🚨 ESCALATED</code> status and flagged to the District Collector.`,
+        action: { label: '🚨 View Escalated Tasks', handler: "showMasterView('admin'); adminNav('escalated'); toggleCivicBot();" }
+      },
+      {
+        keys: ['admin', 'official', 'department login', 'officer login', 'staff'],
+        answer: `🏛️ <strong>Official & Department Login:</strong><br/>
+• <strong>Username:</strong> <code>admin</code><br/>
+• <strong>Password:</strong> <code>admin@2026</code><br/>
+Select your department (Roads, Water, Sanitation, TNEB, Drainage, Collectorate) to access assigned field tasks and resolution controls.`,
+        action: { label: '🔑 Open Official Login', handler: "showMasterView('auth'); switchTab('admin'); toggleCivicBot();" }
+      },
+      {
+        keys: ['super admin', 'sanjai', 'sanjai090', 'user management', 'manage citizen', 'manage official'],
+        answer: `👑 <strong>Super Admin & Master User Management:</strong><br/>
+• <strong>Super Admin ID:</strong> <code>sanjai090</code><br/>
+• <strong>Password:</strong> <code>Sanjai@0505</code><br/>
+Unlocks Master District Control, Citizen Account Management (Suspend/Activate/Reset), Official Staff Directory, and Directives Dispatch.`,
+        action: { label: '🛡️ Manage Citizens & Officials', handler: "showMasterView('admin'); adminNav('citizens'); toggleCivicBot();" }
+      },
+      {
+        keys: ['directive', 'show cause', 'memo', 'collector', 'warning', 'higher official', 'order'],
+        answer: `🔔 <strong>Higher Official Directives & Show-Cause Memos:</strong><br/>
+When a department fails to resolve a complaint in time, the District Collectorate or Master Admin can issue an official <strong>Show-Cause Directive</strong> with strict deadlines (e.g. 12 hours). Officers can acknowledge, navigate to site, and submit compliance reports directly online.`,
+        action: { label: '🔔 View Directives & Alerts', handler: "showMasterView('admin'); adminNav('notifications'); toggleCivicBot();" }
+      },
+      {
+        keys: ['language', 'tamil', 'english', 'change language', 'translate'],
+        answer: `🌐 <strong>Full Bilingual Support (Tamil & English):</strong><br/>
+You can switch the entire portal between English and Tamil by clicking the language pill <code>EN | தமிழ்</code> at the top-right header or inside this chatbot. Every screen, button, form, and table updates instantly!`,
+        action: { label: 'தமிழ் மொழிக்கு மாற்றுக', handler: "setPortalLang('ta'); toggleCivicBot();" }
+      }
+    ],
+    defaultReply: `🤖 I'm here to help with the Erode Citizen Complaint Portal! You can ask about filing grievances, voice recording, GPS location, officer navigation, Admin credentials (<code>admin / admin@2026</code>), Super Admin (<code>sanjai090</code>), or select a quick topic below.`
+  },
+
+  ta: {
+    title: 'ஈரோடு உதவி வழிகாட்டி பாட்',
+    sub: 'இணைய சேவை • இருமொழி உதவி',
+    placeholder: 'கேள்வியைக் கேளுங்கள் அல்லது தலைப்பைத் தேர்ந்தெடுக்கவும்...',
+    welcome: `👋 <strong>வணக்கம்! ஈரோடு மாவட்ட மக்கள் குறைதீர்க்கும் தளத்திற்கு வரவேற்கிறோம்.</strong><br/>நான் உங்கள் AI வழிகாட்டி. புகார் பதிவு செய்வது, குரல் பதிவு (Voice Note), அதிகாரிகள் சம்பவ இடத்திற்கு வருவது, அட்மின் உள்நுழைவு போன்றவற்றிற்கு நான் வழிகாட்டுகிறேன்.<br/><br/><em>இன்று உங்களுக்கு நான் எவ்வாறு உதவ வேண்டும்?</em>`,
+    chips: [
+      { label: '📝 புகார் பதிவு செய்வது எப்படி?', query: 'புகார் பதிவு செய்வது எப்படி' },
+      { label: '🎙️ குரல் பதிவு (Voice Note) எப்படி?', query: 'குரல் பதிவு' },
+      { label: '📍 ஜிபிஎஸ் & கேமரா எப்படி?', query: 'ஜிபிஎஸ் மற்றும் கேமரா' },
+      { label: '🚗 அதிகாரிகள் எப்படி வருகிறார்கள்?', query: 'அதிகாரிகள் பயணம்' },
+      { label: '🚨 காலக்கெடு (SLA) & எச்சரிக்கை', query: 'காலக்கெடு மற்றும் எச்சரிக்கை' },
+      { label: '🏛️ அதிகாரி உள்நுழைவு (Admin)', query: 'அதிகாரி லாகின்' },
+      { label: '👑 முதன்மை அட்மின் (sanjai090)', query: 'சூப்பர் அட்மின் சஞ்சய்' },
+      { label: '🔔 உயர் அதிகாரிகள் உத்தரவு', query: 'உயர் அதிகாரிகள் உத்தரவு' },
+    ],
+    knowledge: [
+      {
+        keys: ['புகார்', 'பதிவு', 'எப்படி', 'குறை', 'புதிய', 'விண்ணப்பம்'],
+        answer: `📝 <strong>புகார் பதிவு செய்யும் 4 எளிய வழிகள்:</strong><br/>
+1. <strong>படி 1 (துறை தேர்வு):</strong> சாலை, குடிநீர், மின்சாரம், சுகாதாரம் போன்ற துறையைத் தேர்ந்தெடுத்து உங்கள் புகாரை டைப் செய்யவும் அல்லது பேசவும்.<br/>
+2. <strong>படி 2 (ஆதாரம்):</strong> நேரலை கேமரா மூலம் புகைப்படம் எடுத்து, உங்கள் GPS இருப்பிடத்தைக் கண்டறியவும்.<br/>
+3. <strong>படி 3 (அவசர நிலை):</strong> அவசரத் தன்மையைத் தேர்வு செய்யவும்.<br/>
+4. <strong>படி 4 (சமர்ப்பிப்பு):</strong> விவரங்களைச் சரிபார்த்து சமர்ப்பிக்கவும். உங்களுக்கு புகார் எண் (எ.கா. <code>CMP-2024-001</code>) கிடைக்கும்.`,
+        action: { label: '➕ புதிய புகார் படிவத்தைத் திறக்க', handler: "showMasterView('citizen'); navigateTo('new-complaint'); toggleCivicBot();" }
+      },
+      {
+        keys: ['குரல்', 'வாய்ஸ்', 'மைக்', 'பேசு', 'voice'],
+        answer: `🎙️ <strong>குரல் பதிவு (Voice Note) வசதி:</strong><br/>
+நீங்கள் தட்டச்சு செய்யத் தேவையில்லை! படிவம் 1-ல் உள்ள <strong>"🎙️ தமிழில் / ஆங்கிலத்தில் பேசுங்கள்"</strong> பொத்தானை அழுத்தினால், நீங்கள் பேசுவதை தானாகவே எழுத்துக்களாக மாற்றும் Speech-to-Text தொழில்நுட்பம் செயல்படும்.`,
+        action: { label: '🎙️ குரல் பதிவை சோதிக்க', handler: "showMasterView('citizen'); navigateTo('new-complaint'); toggleCivicBot();" }
+      },
+      {
+        keys: ['ஜிபிஎஸ்', 'கேமரா', 'இருப்பிடம்', 'படம்', 'போட்டோ', 'gps', 'camera'],
+        answer: `📍 <strong>நேரலை கேமரா & ஜிபிஎஸ் வசதி:</strong><br/>
+• <strong>நேரலை கேமரா:</strong> போலிப் புகார்களைத் தவிர்க்க நேரலை கேமரா மூலம் சம்பவ இடத்தைப் படம் எடுக்கலாம்.<br/>
+• <strong>தானியங்கி GPS:</strong> <em>"GPS இருப்பிடத்தைக் கண்டறி"</em> பொத்தானை அழுத்தினால் உங்கள் துல்லியமான அட்சரேகை மற்றும் தீர்க்கரேகை தானாகப் பதிவாகும்.`,
+        action: { label: '🗺️ பொதுமக்கள் குறைதீர்ப்பு வரைபடத்தைப் பார்க்க', handler: "showMasterView('citizen'); navigateTo('map'); toggleCivicBot();" }
+      },
+      {
+        keys: ['பயணம்', 'நேவிகேஷன்', 'வரைபடம்', 'கூகுள் மேப்', 'அதிகாரி', 'travel', 'maps'],
+        answer: `🚗 <strong>அதிகாரிகள் சம்பவ இடத்திற்குப் பயணிக்கும் வசதி:</strong><br/>
+ஒதுக்கப்பட்ட ஒவ்வொரு புகாரிலும் <strong>"🚗 Travel Direction (Google Maps)"</strong> பொத்தான் உள்ளது. இதை கிளிக் செய்தால் களப்பொறியாளர்கள் தங்கள் இருக்கும் இடத்திலிருந்து பழுதுபார்க்கும் இடத்திற்கு நேவிகேட் செய்து உடனடியாக வர முடியும்.`,
+        action: { label: '📋 துறைப் பணிகளைப் பார்க்க', handler: "showMasterView('admin'); adminNav('complaints'); toggleCivicBot();" }
+      },
+      {
+        keys: ['காலக்கெடு', 'தாமதம்', 'எச்சரிக்கை', 'sla', 'escalat'],
+        answer: `🚨 <strong>SLA காலக்கெடு & தானியங்கி எச்சரிக்கை:</strong><br/>
+• <strong>சாதாரண பிரச்சனைகள்:</strong> 7 நாட்கள் காலக்கெடு.<br/>
+• <strong>முக்கிய பிரச்சனைகள்:</strong> 48 மணி நேரம்.<br/>
+• <strong>அவசர ஆபத்துகள்:</strong> 24 மணி நேரம்.<br/>
+காலக்கெடு முடிந்தும் தீர்க்கப்படாத புகார்கள் தானாகவே சிவப்பு நிறத்தில் <code>🚨 ESCALATED</code> என மாவட்ட ஆட்சியருக்கு அனுப்பப்படும்.`,
+        action: { label: '🚨 காலக்கெடு மீறிய புகார்கள்', handler: "showMasterView('admin'); adminNav('escalated'); toggleCivicBot();" }
+      },
+      {
+        keys: ['அதிகாரி', 'அட்மின்', 'லாகின்', 'admin', 'officer'],
+        answer: `🏛️ <strong>துறை அதிகாரி உள்நுழைவு:</strong><br/>
+• <strong>பயனர் பெயர்:</strong> <code>admin</code><br/>
+• <strong>கடவுச்சொல்:</strong> <code>admin@2026</code><br/>
+உங்கள் துறையைத் (Roads, Water, Sanitation, TNEB, Drainage, Collectorate) தேர்ந்தெடுத்து லாகின் செய்யலாம்.`,
+        action: { label: '🔑 அதிகாரி உள்நுழைவு', handler: "showMasterView('auth'); switchTab('admin'); toggleCivicBot();" }
+      },
+      {
+        keys: ['சூப்பர் அட்மின்', 'சஞ்சய்', 'sanjai', 'sanjai090', 'மேலாண்மை'],
+        answer: `👑 <strong>முதன்மை சூப்பர் அட்மின் & பயனர் மேலாண்மை:</strong><br/>
+• <strong>முதன்மை Admin ID:</strong> <code>sanjai090</code><br/>
+• <strong>கடவுச்சொல்:</strong> <code>Sanjai@0505</code><br/>
+குடிமக்கள் மற்றும் துறை அதிகாரிகள் அனைவரையும் நிர்வகிக்கவும், முடக்கவும், புதிய அதிகாரிகளைச் சேர்க்கவும் முழு அனுமதி உண்டு.`,
+        action: { label: '🛡️ குடிமக்கள் & அதிகாரிகள் மேலாண்மை', handler: "showMasterView('admin'); adminNav('citizens'); toggleCivicBot();" }
+      },
+      {
+        keys: ['உத்தரவு', 'ஆட்சியர்', 'நோட்டீஸ்', 'memo', 'directive', 'show cause'],
+        answer: `🔔 <strong>உயர் அதிகாரிகள் உத்தரவு & Show-Cause நோட்டீஸ்:</strong><br/>
+துறைகள் புகாரைத் தீர்க்கத் தவறினால், மாவட்ட ஆட்சியர் அலுவலகம் நேரடியாக <strong>Show-Cause உத்தரவு</strong> பிறப்பிக்கும். அதிகாரிகள் களப்பணியாளர்களை அனுப்பி 12 மணி நேரத்திற்குள் பணியை முடித்து ஆன்லைனில் அறிக்கை சமர்ப்பிக்கலாம்.`,
+        action: { label: '🔔 உயர் உத்தரவுகளைப் பார்க்க', handler: "showMasterView('admin'); adminNav('notifications'); toggleCivicBot();" }
+      },
+      {
+        keys: ['மொழி', 'ஆங்கிலம்', 'தமிழ்', 'language', 'english'],
+        answer: `🌐 <strong>முழு இருமொழி ஆதரவு (தமிழ் & ஆங்கிலம்):</strong><br/>
+வலதுபுற மேல் பகுதியில் உள்ள <code>EN | தமிழ்</code> பொத்தானை அழுத்தி முழு இணையதளத்தையும் உடனுக்குடன் தமிழுக்கு மாற்றலாம்!`,
+        action: { label: 'Switch to English', handler: "setPortalLang('en'); toggleCivicBot();" }
+      }
+    ],
+    defaultReply: `🤖 ஈரோடு மக்கள் குறைதீர்க்கும் தளம் பற்றிய சந்தேகங்களை என்னிடம் கேளுங்கள்! புதிய புகார் பதிவு செய்தல், வாய்ஸ் நோட், ஜிபிஎஸ், அட்மின் நற்சான்றிதழ்கள் (<code>admin / admin@2026</code>), சூப்பர் அட்மின் (<code>sanjai090</code>) பற்றி நான் உங்களுக்கு வழிகாட்டுகிறேன்.`
+  }
+};
+
+function toggleCivicBot() {
+  const win = document.getElementById('civicBotWindow');
+  if (!win) return;
+  const isOpen = win.classList.toggle('open');
+  if (isOpen && botChatHistory.length === 0) {
+    initBotChat();
+  }
+}
+
+function setBotLanguage(lang) {
+  botLanguage = lang;
+  document.querySelectorAll('.bot-lang-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.getElementById(lang === 'ta' ? 'botLangTA' : 'botLangEN');
+  if (activeBtn) activeBtn.classList.add('active');
+
+  const data = BOT_DATA[lang];
+  const titleEl = document.getElementById('botHeaderTitle');
+  const subEl = document.getElementById('botHeaderSub');
+  const inputEl = document.getElementById('civicBotInput');
+
+  if (titleEl) titleEl.textContent = data.title;
+  if (subEl) subEl.textContent = data.sub;
+  if (inputEl) inputEl.placeholder = data.placeholder;
+
+  renderBotChips();
+  addBotMessage(data.welcome);
+}
+
+function syncBotLang(lang) {
+  if (botLanguage !== lang) {
+    setBotLanguage(lang);
+  }
+}
+
+function renderBotChips() {
+  const container = document.getElementById('civicBotChips');
+  if (!container) return;
+  const chips = BOT_DATA[botLanguage].chips;
+  container.innerHTML = chips.map(c => `
+    <button type="button" class="chat-chip" onclick="handleBotChipClick('${c.query}')">${c.label}</button>
+  `).join('');
+}
+
+function initBotChat() {
+  const container = document.getElementById('civicBotMessages');
+  if (!container) return;
+  container.innerHTML = '';
+  botChatHistory = [];
+  setBotLanguage(botLanguage);
+}
+
+function addBotMessage(html, actionObj = null) {
+  const container = document.getElementById('civicBotMessages');
+  if (!container) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble bot';
+  bubble.innerHTML = `
+    <div class="bot-sender-tag">🤖 ${botLanguage === 'ta' ? 'ஈரோடு வழிகாட்டி' : 'Erode Civic Guide'}</div>
+    <div>${html}</div>
+    ${actionObj ? `<button class="chat-action-btn" onclick="${actionObj.handler}">${actionObj.label} →</button>` : ''}
+  `;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const container = document.getElementById('civicBotMessages');
+  if (!container) return;
+
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble user';
+  bubble.textContent = text;
+  container.appendChild(bubble);
+  container.scrollTop = container.scrollHeight;
+}
+
+function handleBotChipClick(query) {
+  processUserBotQuery(query);
+}
+
+function handleBotUserSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('civicBotInput');
+  if (!input) return;
+  const query = input.value.trim();
+  if (!query) return;
+  input.value = '';
+  processUserBotQuery(query);
+}
+
+function processUserBotQuery(query) {
+  addUserMessage(query);
+
+  // Auto-detect Tamil query or language request
+  const isTamilQuery = /[\u0B80-\u0BFF]/.test(query);
+  if (isTamilQuery && botLanguage !== 'ta') {
+    setBotLanguage('ta');
+  }
+
+  const data = BOT_DATA[botLanguage];
+  const qLower = query.toLowerCase();
+
+  // Search Knowledge Base
+  let matched = null;
+  for (const item of data.knowledge) {
+    if (item.keys.some(k => qLower.includes(k))) {
+      matched = item;
+      break;
+    }
+  }
+
+  setTimeout(() => {
+    if (matched) {
+      addBotMessage(matched.answer, matched.action);
+    } else {
+      addBotMessage(data.defaultReply);
+    }
+  }, 300);
+}
+
+// Auto-initialize chatbot chips on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  renderBotChips();
+});
 
 
 

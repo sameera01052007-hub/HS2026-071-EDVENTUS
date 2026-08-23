@@ -1406,8 +1406,49 @@
         return;
       }
 
-      showToast('❌ Invalid credentials. Check username and password.', 'error');
+        showToast('❌ Invalid credentials. Check username and password.', 'error');
     }
   </script>
+
+  <!-- ══════════════════════════════════════════════════
+       BILINGUAL CIVIC GUIDE CHATBOT WIDGET
+  ══════════════════════════════════════════════════ -->
+  <!-- Floating Launcher Button -->
+  <div class="civic-chatbot-launcher" id="civicBotLauncher" onclick="toggleCivicBot()" title="Civic Assistant / உதவி வழிகாட்டி">
+    💬
+    <div class="bot-pulse"></div>
+  </div>
+
+  <!-- Chatbot Window -->
+  <div class="civic-chatbot-window" id="civicBotWindow">
+    <!-- Header -->
+    <div class="chatbot-header">
+      <div class="chatbot-header-info">
+        <div class="chatbot-avatar">🤖</div>
+        <div>
+          <div class="chatbot-title" id="botHeaderTitle">Erode Civic Guide</div>
+          <div class="chatbot-sub" id="botHeaderSub">Online • Bilingual Assistant</div>
+        </div>
+      </div>
+      <div class="chatbot-header-actions">
+        <button class="bot-lang-btn active" id="botLangEN" onclick="setBotLanguage('en')">EN</button>
+        <button class="bot-lang-btn" id="botLangTA" onclick="setBotLanguage('ta')">தமிழ்</button>
+        <button class="bot-close-btn" onclick="toggleCivicBot()">✕</button>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="chatbot-messages" id="civicBotMessages"></div>
+
+    <!-- Quick Suggestion Chips -->
+    <div class="chatbot-chips-wrap" id="civicBotChips"></div>
+
+    <!-- Input Bar -->
+    <form class="chatbot-input-bar" onsubmit="handleBotUserSubmit(event)">
+      <input type="text" id="civicBotInput" placeholder="Ask a question or select a topic..." autocomplete="off" />
+      <button type="submit" class="chat-send-btn" title="Send">➤</button>
+    </form>
+  </div>
+
 </body>
 </html>
