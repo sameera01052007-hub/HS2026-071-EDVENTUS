@@ -706,6 +706,29 @@ a:hover { text-decoration: underline; }
 
 .topbar-icon-btn:hover { background: #e2e8f0; }
 
+.topbar-signout-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-sm);
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.topbar-signout-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 2px 8px rgba(220,38,38,0.25);
+}
+
 .notif-dot {
   position: absolute;
   top: 5px; right: 5px;

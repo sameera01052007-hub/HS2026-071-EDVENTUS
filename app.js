@@ -1422,12 +1422,24 @@ function animateCounters() {
 }
 
 /* ══════════════════════════════════════════════════════
-   AUTH — Logout
+   AUTH — Sign Out (Universal Across All Panels)
 ══════════════════════════════════════════════════════ */
-function handleLogout() {
+function handleUniversalSignOut() {
   sessionStorage.removeItem('citizen');
-  showToast('Signed out successfully', 'info');
-  setTimeout(() => { window.location.href = 'index.html'; }, 700);
+  sessionStorage.removeItem('admin');
+  
+  const isTa = currentLang === 'ta';
+  showToast(isTa ? '🚪 வெற்றிகரமாக வெளியேற்றப்பட்டீர்கள்!' : '🚪 Signed out successfully!', 'info');
+
+  if (typeof showMasterView === 'function') {
+    showMasterView('auth');
+  } else {
+    setTimeout(() => { window.location.href = 'index.html'; }, 500);
+  }
+}
+
+function handleLogout() {
+  handleUniversalSignOut();
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2318,6 +2330,14 @@ function setPortalLang(lang, showNotification = true) {
       ths[6].textContent = t.thSla;
       if (ths[7]) ths[7].textContent = t.thAction;
     }
+  });
+
+  // Sign Out Buttons
+  document.querySelectorAll('.signout-text').forEach(el => {
+    el.textContent = lang === 'ta' ? 'வெளியேறு' : 'Sign Out';
+  });
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    btn.innerHTML = `<span>🚪</span> ${lang === 'ta' ? 'வெளியேறு' : 'Sign Out'}`;
   });
 
   if (typeof syncBotLang === 'function') {
