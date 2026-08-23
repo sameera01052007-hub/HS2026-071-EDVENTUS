@@ -2365,7 +2365,15 @@ function adminNav(page, btn) {
   const target = document.getElementById(`admin-page-${page}`);
   if (target) target.classList.add('active');
 
-  const titles = { overview:'Overview', complaints:'Department Complaints', escalated:'Escalated Complaints', resolved:'Resolved Tasks', reports:'Analytics & SLA' };
+  const titles = {
+    overview: 'Overview',
+    complaints: 'Department Complaints',
+    escalated: 'Escalated Complaints',
+    resolved: 'Resolved Tasks',
+    reports: 'Analytics & SLA',
+    citizens: 'Manage Citizens',
+    officers: 'Manage Department Officials'
+  };
   const titleEl = document.getElementById('adminPageTitle');
   if (titleEl) titleEl.textContent = titles[page] || page;
 
@@ -2374,6 +2382,8 @@ function adminNav(page, btn) {
   if (page === 'resolved')   renderResolvedTable();
   if (page === 'reports')    renderReports();
   if (page === 'overview')   renderAdminOverview();
+  if (page === 'citizens')   renderCitizensTable();
+  if (page === 'officers')   renderOfficersTable();
 }
 
 function getDeptComplaints() {
@@ -2709,6 +2719,241 @@ function openLocationModal(id, title, address, lat, lng) {
 function closeMapModal() {
   const modal = document.getElementById('locationModal');
   if (modal) modal.classList.remove('show');
+}
+
+/* ══════════════════════════════════════════════════════
+   MASTER USER MANAGEMENT (CITIZENS & OFFICIALS)
+══════════════════════════════════════════════════════ */
+let CITIZENS_DATA = [
+  { id: 'CIT-1001', name: 'Ramesh Kumar', phone: '+91 98765 43210', constituency: 'Erode East', registeredDate: '2024-05-12', complaintsCount: 7, status: 'active' },
+  { id: 'CIT-1002', name: 'Priya Sundaram', phone: '+91 98421 11223', constituency: 'Erode West', registeredDate: '2024-05-18', complaintsCount: 4, status: 'active' },
+  { id: 'CIT-1003', name: 'Karthik Raja', phone: '+91 97890 55667', constituency: 'Bhavani', registeredDate: '2024-06-01', complaintsCount: 2, status: 'active' },
+  { id: 'CIT-1004', name: 'Anitha Murugesan', phone: '+91 94432 99887', constituency: 'Gobichettipalayam', registeredDate: '2024-06-15', complaintsCount: 5, status: 'active' },
+  { id: 'CIT-1005', name: 'Vigneshwaran M', phone: '+91 99520 44332', constituency: 'Perundurai', registeredDate: '2024-07-02', complaintsCount: 1, status: 'suspended' },
+  { id: 'CIT-1006', name: 'Deepa Selvaraj', phone: '+91 96290 88776', constituency: 'Modakkurichi', registeredDate: '2024-07-20', complaintsCount: 3, status: 'active' },
+  { id: 'CIT-1007', name: 'Senthil Nathan', phone: '+91 97150 22334', constituency: 'Anthiyur', registeredDate: '2024-08-01', complaintsCount: 2, status: 'active' },
+  { id: 'CIT-1008', name: 'Kavitha Balan', phone: '+91 98650 77889', constituency: 'Sathyamangalam', registeredDate: '2024-08-05', complaintsCount: 1, status: 'active' },
+];
+
+let OFFICERS_DATA = [
+  { id: 'OFF-01', name: 'Er. S. Murugan', dept: 'Roads & Highways', role: 'Executive Engineer (EE)', phone: '+91 94433 12001', activeTasks: 5, status: 'active' },
+  { id: 'OFF-02', name: 'Er. R. Soundararajan', dept: 'Water Supply', role: 'Assistant Executive Engineer', phone: '+91 94433 12002', activeTasks: 3, status: 'active' },
+  { id: 'OFF-03', name: 'Thiru. K. Velusamy', dept: 'Sanitation', role: 'Sanitary Inspector', phone: '+91 94433 12003', activeTasks: 4, status: 'active' },
+  { id: 'OFF-04', name: 'Er. M. Gunasekaran', dept: 'Tamil Nadu Electricity Board', role: 'Assistant Engineer (O&M)', phone: '+91 94433 12004', activeTasks: 3, status: 'active' },
+  { id: 'OFF-05', name: 'Er. P. Dhanalakshmi', dept: 'Drainage', role: 'Assistant Engineer (Public Works)', phone: '+91 94433 12005', activeTasks: 2, status: 'leave' },
+  { id: 'OFF-06', name: 'Dr. V. Rajendran, DRO', dept: 'District Collectorate', role: 'District Revenue Officer', phone: '+91 94433 12000', activeTasks: 8, status: 'active' },
+];
+
+/* ── Render Citizens Management Table ── */
+function renderCitizensTable() {
+  const tbody = document.getElementById('citizensTableBody');
+  if (!tbody) return;
+
+  const total = CITIZENS_DATA.length;
+  const active = CITIZENS_DATA.filter(c => c.status === 'active').length;
+  const suspended = CITIZENS_DATA.filter(c => c.status === 'suspended').length;
+  const totalComplaints = CITIZENS_DATA.reduce((acc, c) => acc + c.complaintsCount, 0);
+
+  const statsRow = document.getElementById('citizenStatsRow');
+  if (statsRow) {
+    statsRow.innerHTML = `
+      <div class="admin-stat-card"><div class="value" style="color:var(--blue)">${total}</div><div class="label">Total Registered Citizens</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--success)">${active}</div><div class="label">Active Citizens</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--danger)">${suspended}</div><div class="label">Suspended Accounts</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--warning)">${totalComplaints}</div><div class="label">Total Grievances Filed</div></div>
+    `;
+  }
+
+  filterCitizensTable();
+}
+
+function filterCitizensTable() {
+  const tbody = document.getElementById('citizensTableBody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('citizenSearch')?.value || '').toLowerCase();
+  const cConst = document.getElementById('filterCitizenConst')?.value || '';
+  const cStatus = document.getElementById('filterCitizenStatus')?.value || '';
+
+  const filtered = CITIZENS_DATA.filter(c => {
+    if (q && !c.name.toLowerCase().includes(q) && !c.phone.toLowerCase().includes(q) && !c.id.toLowerCase().includes(q)) return false;
+    if (cConst && c.constituency !== cConst) return false;
+    if (cStatus && c.status !== cStatus) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('citizenTableCount');
+  if (countEl) countEl.textContent = `${filtered.length} citizens found`;
+
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td><code style="font-size:11px;color:var(--blue);font-weight:700">${c.id}</code></td>
+      <td>
+        <div style="font-weight:600;color:var(--text-primary)">${c.name}</div>
+        <div style="font-size:11px;color:var(--text-muted)">Registered: ${c.registeredDate}</div>
+      </td>
+      <td><span style="font-size:12px;font-family:monospace">${c.phone}</span></td>
+      <td><span style="font-size:12px;font-weight:500">📍 ${c.constituency}</span></td>
+      <td><span style="font-size:12px">${c.registeredDate}</span></td>
+      <td><span class="badge" style="background:#eff6ff;color:var(--blue);font-weight:700">${c.complaintsCount} Submissions</span></td>
+      <td>
+        <span class="status-badge ${c.status === 'active' ? 'status-resolved' : 'status-escalated'}">
+          ${c.status === 'active' ? '🟢 ACTIVE' : '🔴 SUSPENDED'}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn-update" style="font-size:11px;padding:3px 8px;background:${c.status === 'active' ? '#dc2626' : '#16a34a'}" onclick="toggleCitizenStatus('${c.id}')">
+            ${c.status === 'active' ? 'Suspend' : 'Activate'}
+          </button>
+          <button class="btn-secondary" style="font-size:11px;padding:3px 8px" onclick="resetCitizenPass('${c.id}')" title="Send Password Reset Link">
+            🔑 Reset
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleCitizenStatus(id) {
+  const c = CITIZENS_DATA.find(item => item.id === id);
+  if (!c) return;
+  c.status = c.status === 'active' ? 'suspended' : 'active';
+  showToast(`Account ${id} (${c.name}) set to ${c.status.toUpperCase()}`, c.status === 'active' ? 'success' : 'warning');
+  renderCitizensTable();
+}
+
+function resetCitizenPass(id) {
+  const c = CITIZENS_DATA.find(item => item.id === id);
+  if (!c) return;
+  showToast(`🔑 Password reset SMS link sent to ${c.phone}`, 'info');
+}
+
+/* ── Render Officers Management Table ── */
+function renderOfficersTable() {
+  const tbody = document.getElementById('officersTableBody');
+  if (!tbody) return;
+
+  const total = OFFICERS_DATA.length;
+  const active = OFFICERS_DATA.filter(o => o.status === 'active').length;
+  const leave = OFFICERS_DATA.filter(o => o.status === 'leave').length;
+  const deptsCount = new Set(OFFICERS_DATA.map(o => o.dept)).size;
+
+  const statsRow = document.getElementById('officerStatsRow');
+  if (statsRow) {
+    statsRow.innerHTML = `
+      <div class="admin-stat-card"><div class="value" style="color:var(--blue)">${total}</div><div class="label">Total Officials</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--success)">${active}</div><div class="label">Active On Duty</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--warning)">${leave}</div><div class="label">On Leave</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--navy)">${deptsCount}</div><div class="label">Departments Covered</div></div>
+    `;
+  }
+
+  filterOfficersTable();
+}
+
+function filterOfficersTable() {
+  const tbody = document.getElementById('officersTableBody');
+  if (!tbody) return;
+
+  const q = (document.getElementById('officerSearch')?.value || '').toLowerCase();
+  const oDept = document.getElementById('filterOfficerDept')?.value || '';
+
+  const filtered = OFFICERS_DATA.filter(o => {
+    if (q && !o.name.toLowerCase().includes(q) && !o.role.toLowerCase().includes(q) && !o.id.toLowerCase().includes(q)) return false;
+    if (oDept && o.dept !== oDept) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('officerTableCount');
+  if (countEl) countEl.textContent = `${filtered.length} officers found`;
+
+  tbody.innerHTML = filtered.map(o => `
+    <tr>
+      <td><code style="font-size:11px;color:var(--blue);font-weight:700">${o.id}</code></td>
+      <td>
+        <div style="font-weight:700;color:var(--text-primary)">${o.name}</div>
+      </td>
+      <td><span style="font-size:12px;font-weight:600;color:var(--blue)">${o.dept}</span></td>
+      <td><span style="font-size:12px">${o.role}</span></td>
+      <td><span style="font-size:12px;font-family:monospace">${o.phone}</span></td>
+      <td><span class="badge" style="background:#fef3c7;color:#b45309;font-weight:700">${o.activeTasks} Active Tasks</span></td>
+      <td>
+        <span class="status-badge ${o.status === 'active' ? 'status-resolved' : 'status-review'}">
+          ${o.status === 'active' ? '🟢 ON DUTY' : '🟡 ON LEAVE'}
+        </span>
+      </td>
+      <td>
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn-update" style="font-size:11px;padding:3px 8px;background:${o.status === 'active' ? '#ca8a04' : '#16a34a'}" onclick="toggleOfficerStatus('${o.id}')">
+            ${o.status === 'active' ? 'Mark Leave' : 'Mark On Duty'}
+          </button>
+          <button class="btn-secondary" style="font-size:11px;padding:3px 8px;color:var(--danger)" onclick="deleteOfficer('${o.id}')" title="Revoke access">
+            ✕ Remove
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleOfficerStatus(id) {
+  const o = OFFICERS_DATA.find(item => item.id === id);
+  if (!o) return;
+  o.status = o.status === 'active' ? 'leave' : 'active';
+  showToast(`Officer ${o.name} duty status updated to ${o.status.toUpperCase()}`, 'info');
+  renderOfficersTable();
+}
+
+function deleteOfficer(id) {
+  const idx = OFFICERS_DATA.findIndex(item => item.id === id);
+  if (idx === -1) return;
+  const name = OFFICERS_DATA[idx].name;
+  if (confirm(`Are you sure you want to revoke official access for ${name} (${id})?`)) {
+    OFFICERS_DATA.splice(idx, 1);
+    showToast(`🗑️ Access revoked for ${name}`, 'warning');
+    renderOfficersTable();
+  }
+}
+
+/* ── Add Officer Modal ── */
+function openAddOfficerModal() {
+  const modal = document.getElementById('addOfficerModal');
+  if (modal) modal.classList.add('show');
+}
+
+function closeAddOfficerModal() {
+  const modal = document.getElementById('addOfficerModal');
+  if (modal) modal.classList.remove('show');
+}
+
+function handleSaveOfficer(e) {
+  e.preventDefault();
+  const name = document.getElementById('newOfficerName').value.trim();
+  const dept = document.getElementById('newOfficerDept').value;
+  const role = document.getElementById('newOfficerRole').value.trim();
+  const phone = document.getElementById('newOfficerPhone').value.trim();
+
+  if (!name || !dept || !role || !phone) {
+    showToast('Please fill all required officer details', 'error');
+    return;
+  }
+
+  const newId = `OFF-0${OFFICERS_DATA.length + 1}`;
+  OFFICERS_DATA.push({
+    id: newId,
+    name: name,
+    dept: dept,
+    role: role,
+    phone: phone,
+    activeTasks: 0,
+    status: 'active'
+  });
+
+  showToast(`✅ Registered new Department Officer: ${name} (${newId})`, 'success');
+  closeAddOfficerModal();
+  document.getElementById('formAddOfficer').reset();
+  renderOfficersTable();
 }
 
 

@@ -817,11 +817,17 @@
         </div>
 
         <nav class="admin-nav">
-          <div style="padding:10px 16px 4px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em">Navigation</div>
+          <div style="padding:10px 16px 4px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em">Department Control</div>
           <button class="admin-nav-item active" onclick="adminNav('overview', this)">📊 Overview</button>
           <button class="admin-nav-item" onclick="adminNav('complaints', this)">📋 Department Tasks</button>
           <button class="admin-nav-item" onclick="adminNav('escalated', this)">🚨 Escalated (Overdue)</button>
           <button class="admin-nav-item" onclick="adminNav('resolved', this)">✅ Resolved Tasks</button>
+          
+          <div style="padding:12px 16px 4px;font-size:10px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:0.08em">User Management</div>
+          <button class="admin-nav-item" onclick="adminNav('citizens', this)">👥 Manage Citizens</button>
+          <button class="admin-nav-item" onclick="adminNav('officers', this)">🛡️ Manage Officials</button>
+
+          <div style="padding:12px 16px 4px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em">Reports &amp; Logs</div>
           <button class="admin-nav-item" onclick="adminNav('reports', this)">📈 Analytics &amp; SLA</button>
         </nav>
 
@@ -1026,9 +1032,147 @@
             <button class="btn-secondary" onclick="window.print()">🖨️ Print Report</button>
           </div>
         </div>
+
+        <!-- ── Admin Page: Manage Citizens (Super Admin) ── -->
+        <div class="admin-page" id="admin-page-citizens">
+          <div class="admin-stats" id="citizenStatsRow" style="margin-bottom:16px"></div>
+          
+          <div class="filter-row" style="margin-bottom:14px">
+            <div class="search-bar">
+              <span>🔍</span>
+              <input type="text" placeholder="Search citizens by name, mobile, ID..." oninput="filterCitizensTable()" id="citizenSearch" />
+            </div>
+            <select class="filter-select" id="filterCitizenConst" onchange="filterCitizensTable()">
+              <option value="">All Constituencies</option>
+              <option value="Erode East">Erode East</option>
+              <option value="Erode West">Erode West</option>
+              <option value="Bhavani">Bhavani</option>
+              <option value="Gobichettipalayam">Gobichettipalayam</option>
+              <option value="Perundurai">Perundurai</option>
+              <option value="Modakkurichi">Modakkurichi</option>
+              <option value="Anthiyur">Anthiyur</option>
+              <option value="Sathyamangalam">Sathyamangalam</option>
+            </select>
+            <select class="filter-select" id="filterCitizenStatus" onchange="filterCitizensTable()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="suspended">Suspended</option>
+            </select>
+            <span id="citizenTableCount" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table class="complaints-table" id="citizensTable">
+              <thead>
+                <tr>
+                  <th>Citizen ID</th>
+                  <th>Full Name</th>
+                  <th>Mobile Number</th>
+                  <th>Constituency</th>
+                  <th>Registered Date</th>
+                  <th>Complaints Filed</th>
+                  <th>Account Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="citizensTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Admin Page: Manage Department Officers (Super Admin) ── -->
+        <div class="admin-page" id="admin-page-officers">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div>
+              <h2 style="font-size:16px;font-weight:700;color:var(--text-primary)">Department Nodal Officers &amp; Staff</h2>
+              <p style="font-size:12px;color:var(--text-muted)">Authorized administrative and field staff across Erode district</p>
+            </div>
+            <button class="btn-primary" style="width:auto;padding:8px 16px;font-size:12px" onclick="openAddOfficerModal()">
+              ➕ Add New Department Officer
+            </button>
+          </div>
+
+          <div class="admin-stats" id="officerStatsRow" style="margin-bottom:16px"></div>
+
+          <div class="filter-row" style="margin-bottom:14px">
+            <div class="search-bar">
+              <span>🔍</span>
+              <input type="text" placeholder="Search officers by name, ID, role..." oninput="filterOfficersTable()" id="officerSearch" />
+            </div>
+            <select class="filter-select" id="filterOfficerDept" onchange="filterOfficersTable()">
+              <option value="">All Departments</option>
+              <option value="Roads & Highways">Roads &amp; Highways</option>
+              <option value="Water Supply">Water Supply</option>
+              <option value="Sanitation">Sanitation / Garbage</option>
+              <option value="Tamil Nadu Electricity Board">TNEB Electricity</option>
+              <option value="Drainage">Drainage &amp; Sewage</option>
+              <option value="District Collectorate">District Collectorate</option>
+            </select>
+            <span id="officerTableCount" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+          </div>
+
+          <div style="overflow-x:auto">
+            <table class="complaints-table" id="officersTable">
+              <thead>
+                <tr>
+                  <th>Officer ID</th>
+                  <th>Officer Name</th>
+                  <th>Department</th>
+                  <th>Role / Designation</th>
+                  <th>Contact Phone</th>
+                  <th>Active Tasks</th>
+                  <th>Duty Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="officersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
       </main>
     </div>
   </div>
+
+  <!-- Modal: Add New Department Officer -->
+  <div class="modal-overlay" id="addOfficerModal">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-header">
+        <div style="font-weight:700;font-size:14px">➕ Register Department Officer</div>
+        <span style="cursor:pointer;font-size:18px" onclick="closeAddOfficerModal()">✕</span>
+      </div>
+      <form id="formAddOfficer" onsubmit="handleSaveOfficer(event)" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+        <div class="input-group">
+          <label>Officer Full Name *</label>
+          <input type="text" id="newOfficerName" placeholder="e.g. Er. K. Soundararajan" required style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font)" />
+        </div>
+        <div class="input-group">
+          <label>Department *</label>
+          <select id="newOfficerDept" required style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font)">
+            <option value="Roads & Highways">Roads &amp; Highways</option>
+            <option value="Water Supply">Water Supply</option>
+            <option value="Sanitation">Sanitation / Garbage</option>
+            <option value="Tamil Nadu Electricity Board">Tamil Nadu Electricity Board (TNEB)</option>
+            <option value="Drainage">Drainage &amp; Sewage</option>
+            <option value="District Collectorate">District Collectorate</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Designation / Role *</label>
+          <input type="text" id="newOfficerRole" placeholder="e.g. Assistant Executive Engineer (AEE)" required style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font)" />
+        </div>
+        <div class="input-group">
+          <label>Official Phone Number *</label>
+          <input type="tel" id="newOfficerPhone" placeholder="9842100000" required style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font)" />
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px">
+          <button type="button" class="btn-secondary" onclick="closeAddOfficerModal()">Cancel</button>
+          <button type="submit" class="btn-primary" style="width:auto;padding:8px 20px">Save Officer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Complaint Detail Modal -->
   <div id="complaintModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
     <div id="modalContent" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:540px;width:90%;max-height:90vh;overflow-y:auto"></div>
@@ -1121,26 +1265,39 @@
       const user = document.getElementById('unifiedAdminUser').value.trim();
       const pass = document.getElementById('unifiedAdminPass').value.trim();
 
-      if (user !== 'admin' && !user.includes('erode.gov.in') && user !== 'officer') {
-        showToast('❌ Invalid Admin Username. Use: admin', 'error');
+      // Master Super Admin (Sanjai) Check
+      if (user === 'sanjai090' && pass === 'Sanjai@0505') {
+        currentAdminDept = 'Collectorate';
+        document.getElementById('unifiedAdminOfficerName').textContent = 'Sanjai (Master Administrator)';
+        document.getElementById('unifiedAdminDeptName').textContent = 'District Administration & User Control';
+        document.getElementById('adminDeptLabel').textContent = 'All Departments';
+        document.getElementById('topbarDeptBadge').textContent = 'Master Admin Control Hub';
+
+        const quickSwitch = document.getElementById('quickDeptSwitch');
+        if (quickSwitch) quickSwitch.value = 'ALL';
+
+        showToast('🌟 Master Admin Logged In: Full Citizen & Official Control Enabled!', 'success');
+        showMasterView('admin');
         return;
       }
-      if (pass !== 'admin@2026') {
-        showToast('❌ Invalid Password. Use: admin@2026', 'error');
+
+      // Department Officer Check
+      if (user === 'admin' && pass === 'admin@2026') {
+        currentAdminDept = unifiedChosenDept;
+        document.getElementById('unifiedAdminOfficerName').textContent = user;
+        document.getElementById('unifiedAdminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+        document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
+        document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+
+        const quickSwitch = document.getElementById('quickDeptSwitch');
+        if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
+
+        showToast(`✅ Official login verified: ${user} (${currentAdminDept})`, 'success');
+        showMasterView('admin');
         return;
       }
 
-      currentAdminDept = unifiedChosenDept;
-      document.getElementById('unifiedAdminOfficerName').textContent = user;
-      document.getElementById('unifiedAdminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
-      document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
-      document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
-
-      const quickSwitch = document.getElementById('quickDeptSwitch');
-      if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
-
-      showToast(`✅ Official login verified: ${user} (${currentAdminDept})`, 'success');
-      showMasterView('admin');
+      showToast('❌ Invalid credentials. Check username and password.', 'error');
     }
   </script>
 </body>

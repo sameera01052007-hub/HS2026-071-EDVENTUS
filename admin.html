@@ -739,24 +739,44 @@ function adminLogin() {
   const username = document.getElementById('adminEmail').value.trim();
   const pass = document.getElementById('adminPass').value.trim();
 
-  // Validate credentials: username must be 'admin' (or officer ID) & password 'admin@2026'
-  if (username !== 'admin' && !username.includes('erode.gov.in') && username !== 'officer') {
-    showAdminToast('❌ Invalid Username. Please use: admin', 'error');
-    return;
-  }
-  if (pass !== 'admin@2026') {
-    showAdminToast('❌ Invalid Password. Please use: admin@2026', 'error');
+  // Super Admin (Sanjai) Check
+  if (username === 'sanjai090' && pass === 'Sanjai@0505') {
+    currentAdminDept = 'Collectorate';
+    document.getElementById('adminLoginScreen').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    document.getElementById('adminOfficerName').textContent = 'Sanjai (Master Administrator)';
+    document.getElementById('adminDeptName').textContent = 'District Administration & User Control';
+    document.getElementById('adminDeptLabel').textContent = 'All Departments';
+    document.getElementById('topbarDeptBadge').textContent = 'Master Admin Control Hub';
+
+    const quickSwitch = document.getElementById('quickDeptSwitch');
+    if (quickSwitch) quickSwitch.value = 'ALL';
+
+    showAdminToast('🌟 Master Admin Logged In: Full Citizen & Official Control Enabled!', 'success');
+    renderOverview();
     return;
   }
 
-  currentAdminDept = chosenDept;
+  // Department Officer Check
+  if (username === 'admin' && pass === 'admin@2026') {
+    currentAdminDept = chosenDept;
+    document.getElementById('adminLoginScreen').style.display = 'none';
+    document.getElementById('adminDashboard').style.display = 'block';
+    document.getElementById('adminOfficerName').textContent = username;
+    document.getElementById('adminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+    document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
+    document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
 
-  document.getElementById('adminLoginScreen').style.display = 'none';
-  document.getElementById('adminDashboard').style.display = 'block';
-  document.getElementById('adminOfficerName').textContent = username;
-  document.getElementById('adminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
-  document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
-  document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+    const quickSwitch = document.getElementById('quickDeptSwitch');
+    if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
+
+    showAdminToast(`✅ Verified official login: ${username} (${currentAdminDept})`, 'success');
+    renderOverview();
+    return;
+  }
+
+  showAdminToast('❌ Invalid credentials. Please check username and password.', 'error');
+}
 
   const quickSwitch = document.getElementById('quickDeptSwitch');
   if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
