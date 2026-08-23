@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Citizen Dashboard — Erode District Complaint Portal</title>
+  <meta name="description" content="Manage your civic complaints, track status and view reports on the Erode District Citizen Portal." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dashboard-body">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">🏙️</div>
+      <div class="logo-text">
+        <span class="logo-title">Erode Portal</span>
+        <span class="logo-sub">Citizen Hub</span>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="sidebarAvatar">R</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">Ramesh Kumar</div>
+        <div class="user-const" id="sidebarConst">📍 Erode East</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" id="nav-overview" onclick="navigateTo('overview')">
+        <span class="nav-icon">📊</span> Overview
+      </button>
+      <button class="nav-item" id="nav-complaints" onclick="navigateTo('complaints')">
+        <span class="nav-icon">📋</span> My Complaints
+        <span class="nav-badge" id="pendingBadge">3</span>
+      </button>
+      <button class="nav-item" id="nav-new-complaint" onclick="navigateTo('new-complaint')">
+        <span class="nav-icon">➕</span> New Complaint
+      </button>
+      <button class="nav-item" id="nav-map" onclick="navigateTo('map')">
+        <span class="nav-icon">🗺️</span> Public Map
+      </button>
+
+      <div class="nav-section-label" style="margin-top:12px">Reports</div>
+      <button class="nav-item" id="nav-history" onclick="navigateTo('history')">
+        <span class="nav-icon">📁</span> History
+      </button>
+      <button class="nav-item" id="nav-reports" onclick="navigateTo('reports')">
+        <span class="nav-icon">📈</span> Analytics
+      </button>
+
+      <div class="nav-section-label" style="margin-top:12px">Account</div>
+      <button class="nav-item" id="nav-profile" onclick="navigateTo('profile')">
+        <span class="nav-icon">👤</span> Profile
+      </button>
+      <button class="nav-item" id="nav-notifications" onclick="navigateTo('notifications')">
+        <span class="nav-icon">🔔</span> Notifications
+        <span class="nav-badge" id="notifBadge">2</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="handleLogout()">
+        <span>🚪</span> Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <!-- Dashboard Main -->
+  <main class="dashboard-main">
+
+    <!-- Top Bar -->
+    <div class="dash-topbar">
+      <div class="topbar-left">
+        <h1 id="pageTitle">Overview</h1>
+        <p id="pageSubtitle">Welcome back, Ramesh! Here's your complaint summary.</p>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <span>🔍</span>
+          <input type="text" id="globalSearch" placeholder="Search complaints..." oninput="searchComplaints(this.value)" />
+        </div>
+        <div class="topbar-icon-btn" onclick="navigateTo('notifications')" title="Notifications">
+          🔔
+          <span class="notif-dot"></span>
+        </div>
+        <div class="topbar-icon-btn" onclick="navigateTo('profile')" title="Profile">
+          👤
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: OVERVIEW
+    ════════════════════════════════════════ -->
+    <div class="dash-page active" id="page-overview">
+      <div class="stat-grid">
+        <div class="stat-card blue">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">📋</div>
+            <span class="stat-card-trend trend-up">↑ 12%</span>
+          </div>
+          <div class="stat-card-value counter" data-target="7">0</div>
+          <div class="stat-card-label">Total Complaints</div>
+          <div class="stat-card-sub">Lifetime submissions</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">⏳</div>
+            <span class="stat-card-trend trend-down">-1 this week</span>
+          </div>
+          <div class="stat-card-value counter" data-target="3">0</div>
+          <div class="stat-card-label">Pending</div>
+          <div class="stat-card-sub">Awaiting resolution</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">✅</div>
+            <span class="stat-card-trend trend-up">↑ 4 this month</span>
+          </div>
+          <div class="stat-card-value counter" data-target="4">0</div>
+          <div class="stat-card-label">Resolved</div>
+          <div class="stat-card-sub">Successfully closed</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-card-header">
+            <div class="stat-card-icon">🚨</div>
+            <span class="stat-card-trend trend-down">Action needed</span>
+          </div>
+          <div class="stat-card-value counter" data-target="1">0</div>
+          <div class="stat-card-label">Escalated</div>
+          <div class="stat-card-sub">Pending escalation</div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="dash-grid">
+        <!-- Recent Complaints -->
+        <div>
+          <div class="section-header">
+            <h2 class="section-title">Recent Complaints</h2>
+            <div class="section-actions">
+              <button class="btn-new-complaint" onclick="navigateTo('new-complaint')">
+                ➕ New Complaint
+              </button>
+            </div>
+          </div>
+          <div class="complaints-list" id="recentComplaintsList">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- AI Priority Alert -->
+          <div class="info-panel">
+            <div class="info-panel-title">🤖 AI Insights</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="padding:12px;background:var(--bg-base);border-radius:var(--radius-sm);border:1px solid hsla(0,72%,55%,0.2);">
+                <div style="font-size:12px;color:var(--danger);font-weight:700;margin-bottom:4px">🚨 CRITICAL OVERDUE</div>
+                <div style="font-size:13px;font-weight:600;">Road pothole — NH-47</div>
+                <div style="font-size:11px;color:var(--text-muted);">SLA deadline exceeded by 2 days</div>
+                <div style="margin-top:8px;font-size:11px;color:var(--warning);">⚡ Escalation report sent to Supervisor</div>
+              </div>
+              <div style="padding:12px;background:var(--bg-base);border-radius:var(--radius-sm);border:1px solid var(--border);">
+                <div style="font-size:12px;color:var(--warning);font-weight:700;margin-bottom:4px">⏰ DUE TOMORROW</div>
+                <div style="font-size:13px;font-weight:600;">Water supply disruption</div>
+                <div style="font-size:11px;color:var(--text-muted);">1 working day remaining</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Breakdown -->
+          <div class="info-panel">
+            <div class="info-panel-title">📊 Category Breakdown</div>
+            <div class="cat-list" id="categoryBreakdown">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- SLA Compliance -->
+          <div class="info-panel">
+            <div class="info-panel-title">⚡ Constituency Stats</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--text-secondary)">
+              <div style="display:flex;justify-content:space-between">
+                <span>Open complaints (Erode East)</span>
+                <strong style="color:var(--text-primary)">47</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span>Avg. resolution time</span>
+                <strong style="color:var(--success)">3.2 days</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span>Resolution rate</span>
+                <strong style="color:var(--primary)">91%</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span>Most reported issue</span>
+                <strong style="color:var(--text-primary)">🛣️ Roads</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div style="margin-top:20px">
+        <div class="section-header">
+          <h2 class="section-title">Recent Activity</h2>
+        </div>
+        <div class="info-panel">
+          <div class="timeline" id="activityTimeline">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: MY COMPLAINTS
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-complaints">
+      <div class="section-header">
+        <h2 class="section-title">All My Complaints</h2>
+        <div class="section-actions">
+          <button class="filter-btn active" onclick="filterComplaints('all', this)">All</button>
+          <button class="filter-btn" onclick="filterComplaints('submitted', this)">Submitted</button>
+          <button class="filter-btn" onclick="filterComplaints('review', this)">Under Review</button>
+          <button class="filter-btn" onclick="filterComplaints('progress', this)">In Progress</button>
+          <button class="filter-btn" onclick="filterComplaints('resolved', this)">Resolved</button>
+          <button class="btn-new-complaint" onclick="navigateTo('new-complaint')">➕ New</button>
+        </div>
+      </div>
+
+      <div class="complaints-list" id="allComplaintsList"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: NEW COMPLAINT
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-new-complaint">
+      <div style="max-width:700px;margin:0 auto">
+        <div style="margin-bottom:24px">
+          <h2 style="font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:6px">Submit New Complaint</h2>
+          <p style="color:var(--text-secondary);font-size:14px">Please provide accurate details. Live photo and GPS location are required.</p>
+        </div>
+
+        <div class="complaint-form-wrap">
+          <!-- Step Indicators -->
+          <div class="form-steps">
+            <div class="step active" id="step-1">
+              <div class="step-num">1</div>
+              <span class="step-label">Details</span>
+            </div>
+            <div class="step" id="step-2">
+              <div class="step-num">2</div>
+              <span class="step-label">Photo & Location</span>
+            </div>
+            <div class="step" id="step-3">
+              <div class="step-num">3</div>
+              <span class="step-label">Review & Submit</span>
+            </div>
+          </div>
+
+          <!-- Step 1: Details -->
+          <div id="complaint-step-1" style="padding:28px;display:flex;flex-direction:column;gap:20px">
+
+            <!-- Title with live autocomplete -->
+            <div class="input-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <label for="cTitle" style="margin-bottom:0">Complaint Title <span style="color:var(--danger)">*</span></label>
+                <span id="titleValidIcon" style="font-size:13px"></span>
+              </div>
+              <div class="input-wrap" style="position:relative">
+                <span class="input-icon">📝</span>
+                <input type="text" id="cTitle"
+                  placeholder="e.g. Pothole on main road near market"
+                  oninput="onTitleInput(this)"
+                  onkeydown="onSuggestKey(event)"
+                  autocomplete="off"
+                  style="padding-right:40px"
+                />
+                <span id="titleClear" style="position:absolute;right:12px;cursor:pointer;font-size:16px;color:var(--text-muted);display:none" onclick="clearTitle()">✕</span>
+              </div>
+              <div id="titleSuggestions" style="display:none;position:relative;z-index:50;margin-top:4px;background:var(--bg-card2);border:1px solid var(--border-active);border-radius:var(--radius-sm);overflow:hidden;box-shadow:var(--shadow-lg)"></div>
+              <div id="titleHint" style="font-size:11px;color:var(--text-muted);margin-top:4px">💡 Be specific — include the street name or landmark</div>
+            </div>
+
+            <!-- Category with badges -->
+            <div class="input-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <label style="margin-bottom:0">Category <span style="color:var(--danger)">*</span></label>
+                <span id="catSelectedLabel" style="font-size:12px;color:var(--accent);font-weight:600"></span>
+              </div>
+              <div class="category-grid">
+                <button type="button" class="cat-btn" id="cat-Road" onclick="selectCategory('Road', this)">
+                  <span class="cat-btn-icon">🛣️</span>
+                  <span class="cat-btn-name">Road</span>
+                  <span class="cat-count-badge">847</span>
+                </button>
+                <button type="button" class="cat-btn" id="cat-Garbage" onclick="selectCategory('Garbage', this)">
+                  <span class="cat-btn-icon">🗑️</span>
+                  <span class="cat-btn-name">Garbage</span>
+                  <span class="cat-count-badge">523</span>
+                </button>
+                <button type="button" class="cat-btn" id="cat-Water" onclick="selectCategory('Water', this)">
+                  <span class="cat-btn-icon">💧</span>
+                  <span class="cat-btn-name">Water</span>
+                  <span class="cat-count-badge">412</span>
+                </button>
+                <button type="button" class="cat-btn" id="cat-Electricity" onclick="selectCategory('Electricity', this)">
+                  <span class="cat-btn-icon">⚡</span>
+                  <span class="cat-btn-name">Electricity</span>
+                  <span class="cat-count-badge">318</span>
+                </button>
+                <button type="button" class="cat-btn" id="cat-Drainage" onclick="selectCategory('Drainage', this)">
+                  <span class="cat-btn-icon">🌊</span>
+                  <span class="cat-btn-name">Drainage</span>
+                  <span class="cat-count-badge">256</span>
+                </button>
+                <button type="button" class="cat-btn" id="cat-Other" onclick="selectCategory('Other', this)">
+                  <span class="cat-btn-icon">📌</span>
+                  <span class="cat-btn-name">Other</span>
+                  <span class="cat-count-badge">189</span>
+                </button>
+              </div>
+              <div id="catHint" style="display:none;margin-top:8px;padding:10px 12px;border-radius:var(--radius-sm);font-size:12px;border:1px dashed;transition:all .3s"></div>
+            </div>
+
+            <!-- Description with live counter + quality bar -->
+            <div class="input-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                <label for="cDesc" style="margin-bottom:0">Detailed Description <span style="color:var(--danger)">*</span></label>
+                <span id="descCounter" style="font-size:11px;color:var(--text-muted);font-variant-numeric:tabular-nums">0 / 500</span>
+              </div>
+              <div style="position:relative">
+                <textarea id="cDesc" rows="4"
+                  placeholder="Describe exactly what you see — street name, landmark, severity, when it started..."
+                  oninput="onDescInput(this)"
+                  maxlength="500"
+                  style="width:100%;padding:12px;padding-bottom:36px;background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-size:14px;font-family:var(--font-sans);resize:none;line-height:1.6;transition:all var(--transition)"
+                ></textarea>
+                <div id="descChips" style="position:absolute;bottom:8px;left:10px;display:flex;gap:5px;flex-wrap:wrap"></div>
+              </div>
+              <div id="descQuality" style="margin-top:6px;font-size:12px;display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:4px;background:var(--bg-card2);border-radius:2px;overflow:hidden">
+                  <div id="descQualBar" style="height:100%;border-radius:2px;width:0%;transition:width .4s,background .4s"></div>
+                </div>
+                <span id="descQualLabel" style="color:var(--text-muted);min-width:60px;text-align:right"></span>
+              </div>
+            </div>
+
+            <!-- Severity quick-select -->
+            <div class="input-group">
+              <label style="margin-bottom:8px">How severe is this issue?</label>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="severity-btn" id="sev-low" onclick="setSeverity('low', this)">😐 Minor</button>
+                <button type="button" class="severity-btn" id="sev-medium" onclick="setSeverity('medium', this)">⚠️ Moderate</button>
+                <button type="button" class="severity-btn" id="sev-high" onclick="setSeverity('high', this)">🔴 Serious</button>
+                <button type="button" class="severity-btn" id="sev-critical" onclick="setSeverity('critical', this)">🚨 Emergency</button>
+              </div>
+            </div>
+
+            <!-- AI Priority Live Banner -->
+            <div id="aiPriorityBanner" style="display:none"></div>
+
+            <div style="display:flex;justify-content:flex-end">
+              <button class="btn-primary" style="width:auto;padding:12px 28px" onclick="goToStep(2)">
+                Next: Photo & Location →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Photo & Location -->
+          <div id="complaint-step-2" style="padding:28px;display:none;flex-direction:column;gap:20px">
+
+            <!-- Camera Capture -->
+            <div id="cameraSection">
+              <!-- Idle -->
+              <div id="cameraIdle" style="border:2px dashed var(--border);border-radius:var(--radius);padding:28px;text-align:center;transition:all .3s;cursor:pointer" onclick="startCamera()">
+                <div style="font-size:44px;margin-bottom:10px">📷</div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:6px">Tap to Open Live Camera</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.6">A real-time photo is required to verify the complaint location.<br/>Gallery uploads are <strong>not</strong> accepted.</div>
+                <button class="btn-primary" style="width:auto;padding:10px 24px" onclick="event.stopPropagation();startCamera()">📸 Open Camera</button>
+              </div>
+              <!-- Live Feed -->
+              <div id="cameraPreview" style="display:none;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
+                <div style="position:relative">
+                  <video id="cameraFeed" autoplay playsinline muted style="width:100%;max-height:260px;object-fit:cover;display:block"></video>
+                  <div style="position:absolute;inset:0;pointer-events:none">
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:150px;height:150px;border:2px solid rgba(255,255,255,.4);border-radius:8px">
+                      <div style="position:absolute;top:-2px;left:-2px;width:18px;height:18px;border-top:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:2px 0 0 0"></div>
+                      <div style="position:absolute;top:-2px;right:-2px;width:18px;height:18px;border-top:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 2px 0 0"></div>
+                      <div style="position:absolute;bottom:-2px;left:-2px;width:18px;height:18px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:0 0 0 2px"></div>
+                      <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 0 2px 0"></div>
+                    </div>
+                    <div style="position:absolute;top:10px;left:10px;background:rgba(0,0,0,.55);padding:3px 10px;border-radius:20px;font-size:11px;color:#fff;display:flex;align-items:center;gap:6px">
+                      <span style="width:7px;height:7px;background:red;border-radius:50%;animation:pulse 1.2s infinite"></span> LIVE
+                    </div>
+                  </div>
+                </div>
+                <div style="padding:12px 16px;background:var(--bg-card);display:flex;gap:10px">
+                  <button class="btn-primary" style="flex:1;padding:10px" onclick="capturePhoto()">📸 Capture Photo</button>
+                  <button class="btn-secondary" onclick="stopCamera()">✕ Cancel</button>
+                </div>
+              </div>
+              <!-- Captured Preview -->
+              <div id="capturedPreview" style="display:none;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)">
+                <div style="position:relative">
+                  <img id="capturedImg" style="width:100%;max-height:260px;object-fit:cover;display:block" />
+                  <div style="position:absolute;top:10px;left:10px;background:hsla(145,65%,45%,.9);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px">✅ Live Photo Verified</div>
+                  <div id="photoTimestamp" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:3px 8px;border-radius:6px"></div>
+                </div>
+                <div style="padding:12px 16px;background:var(--bg-card);display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:12px;color:var(--success)">✅ Photo captured successfully</span>
+                  <button class="btn-secondary" style="padding:6px 14px;font-size:12px" onclick="retakePhoto()">🔄 Retake</button>
+                </div>
+              </div>
+            </div>
+
+            <canvas id="captureCanvas" style="display:none"></canvas>
+
+            <!-- Location Capture -->
+            <div style="background:var(--bg-base);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+              <div style="padding:13px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+                <div style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px">📍 GPS Location</div>
+                <button class="btn-secondary" onclick="captureLocation()" id="locationBtn" style="padding:7px 16px;font-size:12px">📡 Detect Location</button>
+              </div>
+              <div id="locationIdle" style="padding:14px 16px;font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:10px">
+                <span style="font-size:20px">🗺️</span> Click "Detect Location" to auto-capture your GPS coordinates
+              </div>
+              <div id="locationLoading" style="display:none;padding:14px 16px">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+                  <div class="spinner" style="border-color:hsla(0,0%,100%,.15);border-top-color:var(--primary)"></div>
+                  <span style="font-size:13px;color:var(--text-secondary)">Fetching GPS coordinates...</span>
+                </div>
+                <div style="height:4px;background:var(--bg-card);border-radius:2px;overflow:hidden">
+                  <div id="locationProgressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:2px;transition:width .3s"></div>
+                </div>
+              </div>
+              <div id="locationDisplay" style="display:none;padding:14px 16px">
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                  <div style="width:40px;height:40px;background:hsla(145,65%,45%,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📍</div>
+                  <div style="flex:1">
+                    <div id="locationAddress" style="font-size:14px;font-weight:600;margin-bottom:4px"></div>
+                    <div id="locationCoords" style="font-size:11px;color:var(--text-muted);font-family:monospace"></div>
+                    <div id="locationAccuracy" style="font-size:11px;color:var(--success);margin-top:4px"></div>
+                  </div>
+                  <span style="background:hsla(145,65%,45%,.12);color:var(--success);font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0;white-space:nowrap">GPS VERIFIED</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Checklist -->
+            <div style="background:var(--bg-base);border-radius:var(--radius-sm);padding:12px 16px;border:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Submission Checklist</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px" id="check-photo">
+                  <span id="check-photo-icon" style="width:20px;text-align:center;font-size:16px">⬜</span>
+                  <span id="check-photo-text" style="color:var(--text-muted)">Live photo captured</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px" id="check-location">
+                  <span id="check-location-icon" style="width:20px;text-align:center;font-size:16px">⬜</span>
+                  <span id="check-location-text" style="color:var(--text-muted)">GPS location detected</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between">
+              <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+              <button class="btn-primary" style="width:auto;padding:12px 28px" onclick="goToStep(3)" id="step2NextBtn" disabled>
+                Next: Review →
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Review & Submit -->
+          <div id="complaint-step-3" style="padding:28px;display:none;flex-direction:column;gap:18px">
+
+            <!-- Auto ID -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg-base);border-radius:var(--radius-sm);border:1px dashed var(--border)">
+              <span style="font-size:12px;color:var(--text-muted)">Complaint ID (auto-assigned)</span>
+              <span id="previewComplaintId" style="font-family:monospace;font-size:13px;font-weight:700;color:var(--accent)"></span>
+            </div>
+
+            <!-- Review Card -->
+            <div style="background:var(--bg-base);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden">
+              <div style="padding:11px 16px;background:var(--bg-card2);border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Complaint Summary</div>
+              <div id="reviewSummary" style="padding:16px;display:flex;flex-direction:column;gap:12px"></div>
+            </div>
+
+            <!-- Captured photo thumbnail in review -->
+            <div id="reviewPhotoRow" style="display:none;border-radius:var(--radius-sm);overflow:hidden;border:1px solid var(--border)">
+              <div style="padding:7px 12px;background:var(--bg-card2);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em">Attached Photo</div>
+              <img id="reviewPhoto" style="width:100%;max-height:180px;object-fit:cover;display:block" />
+            </div>
+
+            <!-- AI Analysis -->
+            <div style="background:hsla(220,90%,56%,0.06);border:1px solid hsla(220,90%,56%,0.25);border-radius:var(--radius-sm);overflow:hidden">
+              <div style="padding:10px 14px;background:hsla(220,90%,56%,0.08);border-bottom:1px solid hsla(220,90%,56%,.2);display:flex;align-items:center;gap:8px">
+                <span>🤖</span>
+                <span style="font-size:12px;font-weight:700;color:var(--primary)">AI Analysis Complete</span>
+              </div>
+              <div style="padding:14px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:13px;color:var(--text-secondary)">Priority Level</span>
+                  <span id="reviewPriority" class="priority-badge"></span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:13px;color:var(--text-secondary)">Assigned Department</span>
+                  <strong id="reviewDept" style="font-size:13px"></strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <span style="font-size:13px;color:var(--text-secondary)">SLA Deadline</span>
+                  <strong id="reviewSLA" style="font-size:13px;color:var(--warning)"></strong>
+                </div>
+                <div id="finalAIPriority" style="font-size:12px;color:var(--text-muted);padding-top:8px;border-top:1px solid var(--border)"></div>
+              </div>
+            </div>
+
+            <!-- Declaration -->
+            <label class="checkbox-wrap" style="align-items:flex-start;gap:10px;font-size:13px;color:var(--text-secondary)">
+              <input type="checkbox" id="declarationCheck" onchange="checkDeclaration()" />
+              <span class="checkmark" style="margin-top:2px"></span>
+              I confirm this complaint is genuine, the photo is live-captured, and the location is accurate. I understand that false complaints may lead to account suspension.
+            </label>
+
+            <div style="display:flex;justify-content:space-between;gap:12px">
+              <button class="btn-secondary" onclick="goToStep(2)">← Back</button>
+              <button class="btn-primary" style="flex:1" onclick="submitComplaint()" id="submitBtn" disabled>
+                <span class="btn-text">Submit Complaint</span>
+                <span class="btn-arrow">🚀</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: PUBLIC MAP
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-map">
+      <div class="section-header">
+        <h2 class="section-title">Public Complaints Map — Erode District</h2>
+        <div class="section-actions">
+          <button class="filter-btn active" onclick="filterMapBy('all', this)">All</button>
+          <button class="filter-btn" onclick="filterMapBy('critical', this)">Critical</button>
+          <button class="filter-btn" onclick="filterMapBy('road', this)">🛣️ Roads</button>
+          <button class="filter-btn" onclick="filterMapBy('water', this)">💧 Water</button>
+        </div>
+      </div>
+
+      <div class="map-container-full" id="mapContainer">
+        <div class="map-dots"></div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:5">
+          <div style="font-size:40px">🗺️</div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-secondary)">Interactive Map — Erode District</div>
+          <div style="font-size:12px;color:var(--text-muted)">OpenStreetMap integration via Leaflet.js</div>
+          <button class="btn-primary" style="width:auto;padding:10px 24px;margin-top:8px" onclick="loadMap()">
+            🗺️ Load Live Map
+          </button>
+        </div>
+        <!-- Simulated Map Pins -->
+        <div id="mapPins"></div>
+        <div class="map-overlay-controls">
+          <div class="map-ctrl-btn" title="Zoom In">+</div>
+          <div class="map-ctrl-btn" title="Zoom Out">−</div>
+          <div class="map-ctrl-btn" title="My Location">📍</div>
+        </div>
+      </div>
+
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div> Submitted</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div> Under Review</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div> In Progress</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Resolved</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Escalated</div>
+      </div>
+
+      <!-- Nearby Complaints -->
+      <div style="margin-top:20px">
+        <div class="section-header">
+          <h2 class="section-title">Complaints in Your Area</h2>
+        </div>
+        <div class="complaints-list" id="nearbyComplaintsList"></div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: HISTORY
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-history">
+      <div class="section-header">
+        <h2 class="section-title">Complaint History</h2>
+        <div class="section-actions">
+          <button class="btn-secondary" onclick="downloadHistory()">📥 Download Report</button>
+        </div>
+      </div>
+      <div class="complaints-list" id="historyList"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: ANALYTICS
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-reports">
+      <div class="stat-grid">
+        <div class="stat-card blue">
+          <div class="stat-card-header"><div class="stat-card-icon">📊</div></div>
+          <div class="stat-card-value">91%</div>
+          <div class="stat-card-label">Resolution Rate</div>
+          <div class="stat-card-sub">Above district avg. (82%)</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-card-header"><div class="stat-card-icon">⏱️</div></div>
+          <div class="stat-card-value">3.2d</div>
+          <div class="stat-card-label">Avg. Resolution Time</div>
+          <div class="stat-card-sub">Working days</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-card-header"><div class="stat-card-icon">🏆</div></div>
+          <div class="stat-card-value">#3</div>
+          <div class="stat-card-label">Constituency Rank</div>
+          <div class="stat-card-sub">Among 15 constituencies</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-card-header"><div class="stat-card-icon">⚠️</div></div>
+          <div class="stat-card-value">2</div>
+          <div class="stat-card-label">Escalations This Month</div>
+          <div class="stat-card-sub">Officers notified</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div>
+          <div class="section-header"><h2 class="section-title">Monthly Complaint Trend</h2></div>
+          <div class="info-panel">
+            <div id="trendChart" style="height:200px;display:flex;align-items:flex-end;gap:8px;padding:20px 0">
+              <!-- Bar chart rendered by JS -->
+            </div>
+            <div style="display:flex;justify-content:space-around;font-size:11px;color:var(--text-muted);margin-top:8px" id="trendLabels"></div>
+          </div>
+
+          <div class="section-header" style="margin-top:20px"><h2 class="section-title">Department Performance</h2></div>
+          <div class="info-panel" id="deptPerformance"></div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="info-panel">
+            <div class="info-panel-title">📋 Complaint Status Split</div>
+            <div style="display:flex;flex-direction:column;gap:10px" id="statusSplit"></div>
+          </div>
+          <div class="info-panel">
+            <div class="info-panel-title">🤖 AI Priority Distribution</div>
+            <div style="display:flex;flex-direction:column;gap:10px" id="priorityDist"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: PROFILE
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-profile">
+      <div style="max-width:600px;margin:0 auto">
+        <div class="info-panel" style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+            <div style="width:72px;height:72px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff" id="profileAvatar">R</div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:20px;font-weight:700" id="profileName">Ramesh Kumar</div>
+              <div style="font-size:13px;color:var(--text-muted)" id="profileConst">📍 Erode East Constituency</div>
+              <div style="margin-top:8px;display:flex;gap:8px">
+                <span style="background:hsla(145,65%,45%,0.12);color:var(--success);font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px">✓ Verified Citizen</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="input-group">
+              <label>Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="profileNameInput" value="Ramesh Kumar" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Phone</label>
+              <div class="input-wrap">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="profilePhone" value="+91 98765 43210" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Email</label>
+              <div class="input-wrap">
+                <span class="input-icon">📧</span>
+                <input type="email" id="profileEmail" value="ramesh@example.com" />
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Constituency</label>
+              <div class="input-wrap">
+                <span class="input-icon">🗺️</span>
+                <select id="profileConstitSelect">
+                  <option value="erode-east" selected>Erode East</option>
+                  <option value="erode-west">Erode West</option>
+                  <option value="bhavani">Bhavani</option>
+                  <option value="gobichettipalayam">Gobichettipalayam</option>
+                  <option value="modakkurichi">Modakkurichi</option>
+                  <option value="anthiyur">Anthiyur</option>
+                  <option value="perundurai">Perundurai</option>
+                  <option value="sathyamangalam">Sathyamangalam</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="margin-top:16px" onclick="saveProfile()">
+            💾 Save Changes
+          </button>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="info-panel">
+          <div class="info-panel-title">🏆 My Contribution</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">
+            <div>
+              <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--primary)">7</div>
+              <div style="font-size:12px;color:var(--text-muted)">Complaints Filed</div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--success)">4</div>
+              <div style="font-size:12px;color:var(--text-muted)">Resolved</div>
+            </div>
+            <div>
+              <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:var(--warning)">57%</div>
+              <div style="font-size:12px;color:var(--text-muted)">Resolution Rate</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         PAGE: NOTIFICATIONS
+    ════════════════════════════════════════ -->
+    <div class="dash-page" id="page-notifications">
+      <div style="max-width:650px;margin:0 auto">
+        <div class="section-header">
+          <h2 class="section-title">Notifications</h2>
+          <button class="filter-btn" onclick="markAllRead()">Mark all read</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px" id="notifList"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Complaint Detail Modal -->
+  <div id="complaintModal" style="display:none;position:fixed;inset:0;background:hsla(222,28%,8%,0.8);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center">
+    <div id="modalContent" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:540px;width:90%;max-height:90vh;overflow-y:auto;animation:slideInRight 0.3s ease">
+      <!-- populated by JS -->
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Citizen Complaint Portal — Erode District</title>
+  <meta name="description" content="Official Citizen Complaint Portal for Erode District, Tamil Nadu. Report civic issues and track resolution status." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="login-body">
+
+  <!-- Animated Background Particles -->
+  <div class="particles" id="particles"></div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header">
+    <div class="header-emblem">
+      <div class="emblem-icon">🏛️</div>
+      <div class="header-text">
+        <span class="gov-text">Government of Tamil Nadu</span>
+        <span class="district-text">Erode District Administration</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="lang-btn active">EN</span>
+      <span class="lang-btn">தமிழ்</span>
+    </div>
+  </header>
+
+  <!-- Main Login Container -->
+  <main class="login-main">
+    <!-- Left Panel — Hero -->
+    <section class="login-hero">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Civic Platform
+      </div>
+      <h1 class="hero-title">
+        <span class="title-line">Your Voice,</span>
+        <span class="title-line gradient-text">Our Action.</span>
+      </h1>
+      <p class="hero-desc">
+        Report civic issues — potholes, water leaks, garbage, electricity — and track resolution in real-time. Powered by AI prioritization and automated escalation.
+      </p>
+
+      <div class="feature-cards">
+        <div class="feat-card">
+          <span class="feat-icon">📍</span>
+          <div>
+            <strong>Live Location</strong>
+            <p>GPS-tagged complaints</p>
+          </div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">🤖</span>
+          <div>
+            <strong>AI Prioritization</strong>
+            <p>Smart routing & SLA</p>
+          </div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">📊</span>
+          <div>
+            <strong>Live Tracking</strong>
+            <p>4-stage status updates</p>
+          </div>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">⚡</span>
+          <div>
+            <strong>Auto Escalation</strong>
+            <p>Deadline-based alerts</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-num">2,847</span>
+          <span class="stat-label">Resolved</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">94%</span>
+          <span class="stat-label">Resolution Rate</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">3.2d</span>
+          <span class="stat-label">Avg. Response</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel — Auth Form -->
+    <section class="login-card-wrap">
+      <div class="login-card" id="loginCard">
+        <!-- Tab Switcher -->
+        <div class="auth-tabs">
+          <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
+          <button class="tab-btn" id="tabSignup" onclick="switchTab('signup')">Register</button>
+          <div class="tab-indicator" id="tabIndicator"></div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-header">
+            <h2>Welcome Back</h2>
+            <p>Sign in to manage your complaints</p>
+          </div>
+
+          <div class="input-group">
+            <label for="loginEmail">Email or Phone</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input type="text" id="loginEmail" placeholder="Enter email or phone" required />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="loginPass">Password</label>
+            <div class="input-wrap">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="loginPass" placeholder="Enter password" required />
+              <button type="button" class="toggle-pass" onclick="togglePass('loginPass', this)">👁</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox-wrap">
+              <input type="checkbox" id="rememberMe" />
+              <span class="checkmark"></span>
+              Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn-primary" id="loginBtn">
+            <span class="btn-text">Sign In</span>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <div class="divider"><span>or continue with</span></div>
+
+          <button type="button" class="btn-google" onclick="handleGoogleLogin()">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+            Sign in with Google
+          </button>
+
+          <p class="switch-hint">Admin? <a href="admin-login.html" class="admin-link">Admin Portal →</a></p>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form class="auth-form hidden" id="signupForm" onsubmit="handleSignup(event)">
+          <div class="form-header">
+            <h2>Create Account</h2>
+            <p>Join 12,000+ citizens of Erode District</p>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="signupName">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="signupName" placeholder="Your full name" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="signupPhone">Phone Number</label>
+              <div class="input-wrap">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="signupPhone" placeholder="+91 XXXXX XXXXX" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signupEmail">Email Address</label>
+            <div class="input-wrap">
+              <span class="input-icon">📧</span>
+              <input type="email" id="signupEmail" placeholder="your@email.com" required />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="signupConstituency">Constituency / Ward</label>
+            <div class="input-wrap">
+              <span class="input-icon">🗺️</span>
+              <select id="signupConstituency" required>
+                <option value="">Select your constituency</option>
+                <option value="erode-east">Erode East</option>
+                <option value="erode-west">Erode West</option>
+                <option value="erode-central">Erode Central</option>
+                <option value="bhavani">Bhavani</option>
+                <option value="modakkurichi">Modakkurichi</option>
+                <option value="gobichettipalayam">Gobichettipalayam</option>
+                <option value="anthiyur">Anthiyur</option>
+                <option value="perundurai">Perundurai</option>
+                <option value="kodumudi">Kodumudi</option>
+                <option value="chithode">Chithode</option>
+                <option value="nambiyur">Nambiyur</option>
+                <option value="sathyamangalam">Sathyamangalam</option>
+                <option value="bhavanisagar">Bhavanisagar</option>
+                <option value="kangayam">Kangayam</option>
+                <option value="dharapuram">Dharapuram</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="signupPass">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="signupPass" placeholder="Min. 8 characters" required />
+                <button type="button" class="toggle-pass" onclick="togglePass('signupPass', this)">👁</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="signupConfirm">Confirm Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="signupConfirm" placeholder="Re-enter password" required />
+              </div>
+            </div>
+          </div>
+
+          <label class="checkbox-wrap terms-wrap">
+            <input type="checkbox" id="termsCheck" required />
+            <span class="checkmark"></span>
+            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+          </label>
+
+          <button type="submit" class="btn-primary" id="signupBtn">
+            <span class="btn-text">Create Account</span>
+            <span class="btn-arrow">→</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Trust Badge -->
+      <div class="trust-badge">
+        <span>🔐</span>
+        <span>256-bit SSL secured</span>
+        <span class="dot">•</span>
+        <span>Official Government Portal</span>
+        <span class="dot">•</span>
+        <span>Data Protected under IT Act 2000</span>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
