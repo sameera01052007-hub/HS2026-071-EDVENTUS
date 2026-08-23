@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Erode District Complaint Portal</title>
+  <meta name="description" content="Department Officer Admin Panel — Erode District Citizen Complaint Portal" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    /* ── Admin-specific styles ── */
+    .admin-layout { display: flex; min-height: 100vh; }
+
+    .admin-sidebar {
+      width: 230px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 60;
+    }
+
+    .admin-logo {
+      padding: 0 16px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #020617;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .admin-logo-badge {
+      width: 32px; height: 32px;
+      background: #dc2626;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+
+    .admin-logo-text { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+    .admin-logo-sub  { font-size: 10px; color: #64748b; }
+
+    .admin-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: var(--font);
+      border-left: 3px solid transparent;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .admin-nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+    .admin-nav-item.active { background: rgba(220,38,38,0.12); color: #fca5a5; border-left-color: #dc2626; }
+
+    .admin-main { margin-left: 230px; flex: 1; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .admin-topbar {
+      position: sticky; top: 0; z-index: 40;
+      background: var(--bg-white);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .admin-topbar h1 { font-size: 16px; font-weight: 700; }
+    .admin-topbar p  { font-size: 12px; color: var(--text-muted); }
+
+    .admin-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: #fef2f2; border: 1px solid #fecaca;
+      padding: 4px 10px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; color: #dc2626;
+    }
+
+    .admin-page { display: none; padding: 24px; }
+    .admin-page.active { display: block; animation: fadeIn 0.2s ease; }
+
+    /* Complaint Table */
+    .complaints-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-white);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .complaints-table thead {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .complaints-table th {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .complaints-table td {
+      padding: 11px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text-secondary);
+    }
+
+    .complaints-table tr:last-child td { border-bottom: none; }
+    .complaints-table tr:hover td { background: var(--bg-panel); }
+
+    .status-select {
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-family: var(--font);
+      cursor: pointer;
+    }
+
+    .status-select:focus { outline: none; border-color: var(--blue); }
+
+    .escalation-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .btn-nav-gmaps {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 8px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 4px;
+      color: #1d4ed8;
+      font-size: 11px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+
+    .btn-nav-gmaps:hover {
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .btn-map-pin {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 4px 8px;
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-map-pin:hover {
+      background: #e2e8f0;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+
+    .filter-select {
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+      font-size: 13px;
+      font-family: var(--font);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .search-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 12px;
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      flex: 1; max-width: 260px;
+    }
+
+    .search-bar input {
+      border: none; background: none; outline: none;
+      font-size: 13px; font-family: var(--font);
+      color: var(--text-primary); width: 100%;
+    }
+
+    .btn-update {
+      padding: 4px 10px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .btn-update:hover { background: var(--blue-hover); }
+
+    /* Admin Login Page */
+    .admin-login-wrap {
+      min-height: 100vh;
+      background: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .admin-login-card {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    .admin-login-card .logo-row {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    }
+
+    .admin-login-card .logo-row .badge {
+      width: 40px; height: 40px;
+      background: #dc2626;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+
+    .admin-login-card h2 { font-size: 20px; font-weight: 700; color: #f1f5f9; margin-bottom: 3px; }
+    .admin-login-card p  { font-size: 12px; color: #94a3b8; }
+
+    .admin-login-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+
+    .admin-login-card input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: var(--radius-sm);
+      color: #f1f5f9;
+      font-size: 13px;
+      font-family: var(--font);
+    }
+
+    .admin-login-card input:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .admin-login-card .btn-login {
+      width: 100%;
+      margin-top: 18px;
+      padding: 11px;
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      font-family: var(--font);
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .admin-login-card .btn-login:hover { background: #b91c1c; }
+
+    .dept-row {
+      display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;
+    }
+
+    .dept-chip {
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: #1e3a5f;
+      border: 1px solid rgba(59,130,246,0.3);
+      color: #93c5fd;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    .dept-chip.active { background: #1d4ed8; color: #fff; border-color: #3b82f6; }
+
+    /* Stats row */
+    .admin-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .admin-stat-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .admin-stat-card .value { font-size: 26px; font-weight: 700; }
+    .admin-stat-card .label { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Escalation Panel */
+    .escalation-panel {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .escalation-panel h3 {
+      font-size: 13px; font-weight: 700; color: #dc2626;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+    }
+
+    .esc-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .esc-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 13px;
+      gap: 10px;
+    }
+
+    .esc-item-left { display: flex; flex-direction: column; gap: 2px; }
+    .esc-item-left strong { color: var(--text-primary); font-size: 13px; }
+    .esc-item-left span   { font-size: 11px; color: #ef4444; }
+
+    .btn-resolve {
+      padding: 4px 10px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    /* Modal for Inspection Map */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: none; align-items: center; justify-content: center;
+      z-index: 999; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: var(--radius-lg);
+      width: 100%; max-width: 600px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      padding: 14px 20px; background: var(--navy); color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════
+     ADMIN LOGIN SCREEN
+═══════════════════════════════ -->
+<div id="adminLoginScreen" class="admin-login-wrap">
+  <div class="admin-login-card">
+    <div class="logo-row">
+      <div class="badge">🏛️</div>
+      <div>
+        <h2>Admin Portal</h2>
+        <p>Department Officer & Field Staff Login — Erode</p>
+      </div>
+    </div>
+
+    <label>Choose Your Department</label>
+    <div class="dept-row">
+      <button type="button" class="dept-chip active" onclick="selectDept(this, 'Roads &amp; Highways')">Roads</button>
+      <button type="button" class="dept-chip" onclick="selectDept(this, 'Water Supply')">Water</button>
+      <button type="button" class="dept-chip" onclick="selectDept(this, 'Sanitation')">Garbage</button>
+      <button type="button" class="dept-chip" onclick="selectDept(this, 'TNEB')">Electricity</button>
+      <button type="button" class="dept-chip" onclick="selectDept(this, 'Collectorate')">All (Admin)</button>
+    </div>
+
+    <label for="adminEmail">Officer Username</label>
+    <input type="text" id="adminEmail" placeholder="admin" value="admin" />
+
+    <label for="adminPass">Password</label>
+    <input type="password" id="adminPass" placeholder="••••••••" value="admin@2026" />
+
+    <button type="button" class="btn-login" onclick="adminLogin()">Login to Department Dashboard →</button>
+
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:#64748b">
+      Citizen? <a href="index.html" style="color:#93c5fd">Go to Citizen Portal</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════
+     ADMIN DASHBOARD
+═══════════════════════════════ -->
+<div id="adminDashboard" style="display:none">
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <div class="admin-logo-badge">🏛️</div>
+        <div>
+          <div class="admin-logo-text">Admin Panel</div>
+          <div class="admin-logo-sub">Erode District Administration</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.08)">
+        <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Logged in as</div>
+        <div style="font-size:13px;font-weight:700;color:#f1f5f9" id="adminOfficerName">admin</div>
+        <div style="font-size:11px;color:#60a5fa;margin-top:2px" id="adminDeptName">Roads &amp; Highways</div>
+      </div>
+
+      <nav class="admin-nav">
+        <div style="padding:8px 16px 4px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em">Menu</div>
+        <button class="admin-nav-item active" onclick="adminNav('overview', this)">📊 <span data-i18n="overview">Overview</span></button>
+        <button class="admin-nav-item" onclick="adminNav('complaints', this)">📋 <span data-i18n="complaints">Department Complaints</span></button>
+        <button class="admin-nav-item" onclick="adminNav('escalated', this)">🚨 <span data-i18n="escalated">Escalated (Overdue)</span></button>
+        <button class="admin-nav-item" onclick="adminNav('resolved', this)">✅ <span data-i18n="resolved">Resolved Tasks</span></button>
+        <button class="admin-nav-item" onclick="adminNav('reports', this)">📈 <span data-i18n="reports">Analytics &amp; SLA</span></button>
+      </nav>
+
+      <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08)">
+        <button onclick="adminLogout()" style="width:100%;padding:8px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.25);border-radius:var(--radius-sm);color:#fca5a5;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">
+          🚪 Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="admin-main">
+      <!-- Topbar -->
+      <div class="admin-topbar">
+        <div>
+          <h1 id="adminPageTitle">Overview</h1>
+          <p id="adminPageSub">Field repair &amp; resolution dashboard for <span id="topbarDeptBadge" style="font-weight:700;color:var(--blue)">Roads &amp; Highways</span></p>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <!-- Department Filter Toggle -->
+          <select id="quickDeptSwitch" class="filter-select" style="font-size:12px;padding:4px 8px" onchange="changeDeptFilter(this.value)">
+            <option value="Roads &amp; Highways">🛣️ Roads &amp; Highways</option>
+            <option value="Water Supply">💧 Water Supply</option>
+            <option value="Sanitation">🗑️ Sanitation / Garbage</option>
+            <option value="Tamil Nadu Electricity Board">⚡ TNEB Electricity</option>
+            <option value="Drainage">🌊 Drainage &amp; Sewage</option>
+            <option value="ALL">🏛️ All Departments (Collectorate)</option>
+          </select>
+
+          <!-- Language toggle -->
+          <div style="display:flex;gap:4px">
+            <button class="lang-btn active" id="adminLangEN" onclick="setAdminLang('en')">EN</button>
+            <button class="lang-btn" id="adminLangTA" onclick="setAdminLang('ta')">தமிழ்</button>
+          </div>
+
+          <div class="admin-badge">🔴 Official Mode</div>
+          <div style="font-size:12px;color:var(--text-muted);font-weight:500" id="adminClock"></div>
+        </div>
+      </div>
+
+      <!-- ── PAGE: Overview ── -->
+      <div class="admin-page active" id="admin-page-overview">
+        <!-- Stats -->
+        <div class="admin-stats" id="adminStatsRow"></div>
+
+        <!-- Escalation Alerts -->
+        <div class="escalation-panel" id="escalationPanel">
+          <h3>🚨 SLA Escalation Alerts — Immediate Field Action Required</h3>
+          <div class="esc-list" id="escalationList"></div>
+        </div>
+
+        <!-- Recent Complaints Table -->
+        <div class="section-header" style="margin-bottom:10px">
+          <h2 class="section-title">Department Assigned Complaints (<span id="adminDeptLabel">Roads &amp; Highways</span>)</h2>
+          <button class="btn-update" onclick="adminNav('complaints', document.querySelector('.admin-nav-item:nth-child(2)'))">View Full Table →</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="complaints-table" id="overviewTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Complaint</th>
+                <th>Location / Landmark</th>
+                <th>Field Navigation</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>SLA Deadline</th>
+                <th>Update Status</th>
+              </tr>
+            </thead>
+            <tbody id="overviewTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PAGE: All Complaints ── -->
+      <div class="admin-page" id="admin-page-complaints">
+        <div class="filter-row">
+          <div class="search-bar">
+            <span>🔍</span>
+            <input type="text" placeholder="Search by ID, title, street..." oninput="filterAdminTable()" id="adminSearch" />
+          </div>
+          <select class="filter-select" id="filterStatus" onchange="filterAdminTable()">
+            <option value="">All Status</option>
+            <option value="submitted">Submitted</option>
+            <option value="review">Under Review</option>
+            <option value="progress">In Progress</option>
+            <option value="resolved">Resolved</option>
+          </select>
+          <select class="filter-select" id="filterPriority" onchange="filterAdminTable()">
+            <option value="">All Priority</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <select class="filter-select" id="filterConstituency" onchange="filterAdminTable()">
+            <option value="">All Constituencies</option>
+            <option>Erode East</option>
+            <option>Erode West</option>
+            <option>Bhavani</option>
+            <option>Gobichettipalayam</option>
+            <option>Perundurai</option>
+          </select>
+          <span id="adminTableCount" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="complaints-table" id="adminComplaintsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Department</th>
+                <th>Location Landmark &amp; GPS</th>
+                <th>🚗 Travel Map</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>SLA Deadline</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PAGE: Escalated ── -->
+      <div class="admin-page" id="admin-page-escalated">
+        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⚠️</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#dc2626">SLA Overdue &amp; Escalated Tasks</div>
+            <div style="font-size:12px;color:#ef4444">These complaints passed their committed resolution time. Field officers must visit the site and update status.</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="complaints-table" id="escalatedTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Complaint</th>
+                <th>Exact Location</th>
+                <th>Navigation</th>
+                <th>Priority</th>
+                <th>SLA Missed By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="escalatedTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PAGE: Resolved ── -->
+      <div class="admin-page" id="admin-page-resolved">
+        <div style="background:var(--success-bg);border:1px solid var(--success-bd);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">✅</span>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--success)">Resolved Department Complaints</div>
+            <div style="font-size:12px;color:var(--success)">All civic complaints successfully resolved with field repair completed.</div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="complaints-table" id="resolvedTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Complaint</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Priority</th>
+                <th>Submitted</th>
+                <th>Resolved Date</th>
+                <th>Days Taken</th>
+              </tr>
+            </thead>
+            <tbody id="resolvedTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── PAGE: Reports ── -->
+      <div class="admin-page" id="admin-page-reports">
+        <div class="admin-stats" id="reportStatsRow" style="margin-bottom:20px"></div>
+
+        <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">📊 Department Resolution Progress</div>
+          <div id="reportBreakdown" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="downloadReport()">
+            ⬇ Download Department Report (CSV)
+          </button>
+          <button class="btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Modal: Location Inspection Map -->
+<div class="modal-overlay" id="locationModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div style="font-weight:700;font-size:14px" id="modalMapTitle">📍 Field Location Details</div>
+      <span style="cursor:pointer;font-size:18px" onclick="closeMapModal()">✕</span>
+    </div>
+    <div style="padding:16px">
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px" id="modalMapAddress"></div>
+      <div id="modalLeafletMap" style="height:260px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text-muted)" id="modalMapCoords"></span>
+        <a id="modalGmapsBtn" href="#" target="_blank" class="btn-nav-gmaps" style="padding:8px 16px;font-size:13px">
+          🚗 Open Google Maps Navigation →
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="adminToast" class="toast"></div>
+
+<script>
+/* ── State & Mock Data ── */
+let currentAdminDept = 'Roads & Highways';
+let currentAdminLang = 'en';
+
+const ADMIN_MOCK = [
+  { id:'CMP-2024-001', title:'Large pothole on NH-47 near market', category:'Road', dept:'Roads & Highways', constituency:'Erode East', priority:'critical', status:'progress', submitted:'2024-08-01', sla:'2024-08-06', escalated:true, lat:11.3410, lng:77.7172, address:'NH-47, Market Junction, Erode East' },
+  { id:'CMP-2024-002', title:'Street light not working for 2 weeks', category:'Electricity', dept:'Tamil Nadu Electricity Board', constituency:'Erode West', priority:'medium', status:'submitted', submitted:'2024-08-03', sla:'2024-08-13', escalated:false, lat:11.3395, lng:77.7165, address:'Gandhi Nagar 4th St, Erode West' },
+  { id:'CMP-2024-003', title:'Water supply disruption in colony', category:'Water', dept:'Water Supply', constituency:'Bhavani', priority:'high', status:'progress', submitted:'2024-08-02', sla:'2024-08-07', escalated:false, lat:11.3430, lng:77.7145, address:'Kaveri Street, Bhavani' },
+  { id:'CMP-2024-004', title:'Garbage not collected for a week', category:'Garbage', dept:'Sanitation', constituency:'Erode East', priority:'medium', status:'submitted', submitted:'2024-08-04', sla:'2024-08-14', escalated:false, lat:11.3380, lng:77.7195, address:'VOC Park Road, Erode East' },
+  { id:'CMP-2024-005', title:'Blocked drainage causing waterlogging', category:'Drainage', dept:'Water Supply', constituency:'Gobichettipalayam', priority:'critical', status:'submitted', submitted:'2024-08-05', sla:'2024-08-07', escalated:true, lat:11.3445, lng:77.7210, address:'Bus Stand Road, Gobichettipalayam' },
+  { id:'CMP-2024-006', title:'Damaged footpath near school', category:'Road', dept:'Roads & Highways', constituency:'Perundurai', priority:'medium', status:'resolved', submitted:'2024-07-25', sla:'2024-08-04', escalated:false, resolvedDate:'2024-08-03', lat:11.3360, lng:77.7150, address:'Govt Higher Sec School, Perundurai' },
+  { id:'CMP-2024-007', title:'Electrical wire hanging dangerously low', category:'Electricity', dept:'Tamil Nadu Electricity Board', constituency:'Erode East', priority:'critical', status:'review', submitted:'2024-08-06', sla:'2024-08-08', escalated:true, lat:11.3420, lng:77.7130, address:'Mettur Road, Erode East' },
+  { id:'CMP-2024-008', title:'Main pipeline burst & leaking drinking water', category:'Water', dept:'Water Supply', constituency:'Erode West', priority:'critical', status:'submitted', submitted:'2024-08-06', sla:'2024-08-08', escalated:false, lat:11.3400, lng:77.7220, address:'Brough Road, Erode West' },
+  { id:'CMP-2024-009', title:'Open garbage dumping near residential area', category:'Garbage', dept:'Sanitation', constituency:'Bhavani', priority:'high', status:'progress', submitted:'2024-08-01', sla:'2024-08-06', escalated:true, lat:11.3460, lng:77.7175, address:'Kaveri River Bank Rd, Bhavani' },
+  { id:'CMP-2024-010', title:'Road collapse after heavy rainfall', category:'Road', dept:'Roads & Highways', constituency:'Erode East', priority:'critical', status:'submitted', submitted:'2024-08-07', sla:'2024-08-09', escalated:false, lat:11.3370, lng:77.7140, address:'Perundurai Rd Junction, Erode' },
+];
+
+let adminData = [...ADMIN_MOCK];
+
+/* ── Login Logic ── */
+let chosenDept = 'Roads & Highways';
+
+function selectDept(btn, dept) {
+  document.querySelectorAll('.dept-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  chosenDept = dept;
+}
+
+function adminLogin() {
+  const username = document.getElementById('adminEmail').value.trim();
+  const pass = document.getElementById('adminPass').value.trim();
+
+  // Validate credentials: username must be 'admin' (or officer ID) & password 'admin@2026'
+  if (username !== 'admin' && !username.includes('erode.gov.in') && username !== 'officer') {
+    showAdminToast('❌ Invalid Username. Please use: admin', 'error');
+    return;
+  }
+  if (pass !== 'admin@2026') {
+    showAdminToast('❌ Invalid Password. Please use: admin@2026', 'error');
+    return;
+  }
+
+  currentAdminDept = chosenDept;
+
+  document.getElementById('adminLoginScreen').style.display = 'none';
+  document.getElementById('adminDashboard').style.display = 'block';
+  document.getElementById('adminOfficerName').textContent = username;
+  document.getElementById('adminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+  document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
+  document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+
+  const quickSwitch = document.getElementById('quickDeptSwitch');
+  if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
+
+  renderAdminOverview();
+  startAdminClock();
+  showAdminToast(`✅ Welcome, ${username}! Viewing ${currentAdminDept} tasks.`, 'success');
+}
+
+function adminLogout() {
+  document.getElementById('adminDashboard').style.display = 'none';
+  document.getElementById('adminLoginScreen').style.display = 'flex';
+}
+
+function changeDeptFilter(dept) {
+  currentAdminDept = dept === 'ALL' ? 'Collectorate' : dept;
+  document.getElementById('adminDeptName').textContent = dept === 'ALL' ? 'All Departments' : dept;
+  document.getElementById('adminDeptLabel').textContent = dept === 'ALL' ? 'All Departments' : dept;
+  document.getElementById('topbarDeptBadge').textContent = dept === 'ALL' ? 'All Departments' : dept;
+  renderAdminOverview();
+  renderAdminTable();
+  showAdminToast(`🔄 Switched view to ${dept === 'ALL' ? 'All Departments' : dept}`, 'info');
+}
+
+/* ── Navigation ── */
+function adminNav(page, btn) {
+  document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`admin-page-${page}`).classList.add('active');
+
+  const titles = { overview:'Overview', complaints:'Department Complaints', escalated:'Escalated Complaints', resolved:'Resolved Tasks', reports:'Analytics & SLA' };
+  document.getElementById('adminPageTitle').textContent = titles[page] || page;
+
+  if (page === 'complaints') renderAdminTable();
+  if (page === 'escalated')  renderEscalatedTable();
+  if (page === 'resolved')   renderResolvedTable();
+  if (page === 'reports')    renderReports();
+  if (page === 'overview')   renderAdminOverview();
+}
+
+/* ── Overview ── */
+function getDeptComplaints() {
+  if (currentAdminDept === 'Collectorate' || currentAdminDept === 'ALL') {
+    return adminData;
+  }
+  return adminData.filter(c => c.dept.toLowerCase().includes(currentAdminDept.toLowerCase()) || (c.category.toLowerCase() === 'road' && currentAdminDept.includes('Roads')));
+}
+
+function renderAdminOverview() {
+  const deptList = getDeptComplaints();
+  const escalated = deptList.filter(c => c.escalated || isOverdue(c));
+  const resolved  = deptList.filter(c => c.status === 'resolved');
+  const pending   = deptList.filter(c => c.status !== 'resolved');
+
+  const stats = [
+    { label:'Assigned Complaints', value: deptList.length, color:'var(--blue)' },
+    { label:'Pending Resolution', value: pending.length, color:'var(--warning)' },
+    { label:'Escalated (Overdue)', value: escalated.length, color:'var(--danger)' },
+    { label:'Resolved by Field Staff', value: resolved.length, color:'var(--success)' },
+  ];
+
+  document.getElementById('adminStatsRow').innerHTML = stats.map(s => `
+    <div class="admin-stat-card">
+      <div class="value" style="color:${s.color}">${s.value}</div>
+      <div class="label">${s.label}</div>
+    </div>
+  `).join('');
+
+  // Escalation alert list
+  const escItems = deptList.filter(c => c.escalated || isOverdue(c));
+  const escList = document.getElementById('escalationList');
+  const escPanel = document.getElementById('escalationPanel');
+
+  if (escItems.length === 0) {
+    escPanel.style.display = 'none';
+  } else {
+    escPanel.style.display = 'block';
+    escList.innerHTML = escItems.map(c => `
+      <div class="esc-item">
+        <div class="esc-item-left">
+          <strong>${c.id} — ${c.title}</strong>
+          <span>📍 ${c.address} (${c.constituency}) · SLA missed</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">
+            🚗 Travel Direction
+          </a>
+          <button class="btn-resolve" onclick="quickResolve('${c.id}')">Mark Resolved</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Overview table (recent 5 for this department)
+  const recent = [...deptList].sort((a,b) => b.submitted.localeCompare(a.submitted)).slice(0, 6);
+  document.getElementById('overviewTableBody').innerHTML = recent.map(c => `
+    <tr>
+      <td><code style="font-size:11px;color:var(--blue);font-weight:700">${c.id}</code></td>
+      <td>
+        <div style="font-weight:600;color:var(--text-primary);font-size:13px">${c.title}</div>
+        ${c.escalated || isOverdue(c) ? '<span class="escalation-tag" style="margin-top:2px">🚨 ESCALATED</span>' : ''}
+      </td>
+      <td>
+        <div style="font-size:12px;color:var(--text-secondary)">${c.address}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:monospace">${c.lat.toFixed(4)}°N, ${c.lng.toFixed(4)}°E</div>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps" title="Open Google Maps Driving Directions">
+            🚗 Navigate
+          </a>
+          <button class="btn-map-pin" onclick="openLocationModal('${c.id}', '${escapeQuotes(c.title)}', '${escapeQuotes(c.address)}', ${c.lat}, ${c.lng})">
+            📍 Pin
+          </button>
+        </div>
+      </td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="font-size:12px;${isOverdue(c)?'color:var(--danger);font-weight:600':'color:var(--text-muted)'}">
+        ${c.sla}${isOverdue(c)?' ⚠️':''}
+      </td>
+      <td>
+        <div style="display:flex;gap:5px;align-items:center">
+          <select class="status-select" id="sel-${c.id}">
+            <option value="submitted" ${c.status==='submitted'?'selected':''}>Submitted</option>
+            <option value="review"    ${c.status==='review'?'selected':''}>Under Review</option>
+            <option value="progress"  ${c.status==='progress'?'selected':''}>In Progress</option>
+            <option value="resolved"  ${c.status==='resolved'?'selected':''}>Resolved</option>
+          </select>
+          <button class="btn-update" onclick="updateStatus('${c.id}')">Save</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ── All Complaints Table ── */
+function renderAdminTable() {
+  const tbody = document.getElementById('adminTableBody');
+  const data = getFilteredData();
+  document.getElementById('adminTableCount').textContent = `${data.length} assigned records`;
+
+  tbody.innerHTML = data.map(c => `
+    <tr>
+      <td><code style="font-size:11px;color:var(--blue);font-weight:700">${c.id}</code></td>
+      <td>
+        <div style="font-weight:600;color:var(--text-primary);font-size:13px">${c.title}</div>
+        ${c.escalated || isOverdue(c) ? '<span class="escalation-tag" style="margin-top:2px">🚨 ESCALATED</span>' : ''}
+      </td>
+      <td><span style="font-size:12px;font-weight:500">${c.dept}</span></td>
+      <td>
+        <div style="font-size:12px">${c.address}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:monospace">${c.lat.toFixed(4)}°N, ${c.lng.toFixed(4)}°E</div>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">
+            🚗 Navigate
+          </a>
+          <button class="btn-map-pin" onclick="openLocationModal('${c.id}', '${escapeQuotes(c.title)}', '${escapeQuotes(c.address)}', ${c.lat}, ${c.lng})">
+            📍 Pin
+          </button>
+        </div>
+      </td>
+      <td>${priorityBadge(c.priority)}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td style="font-size:12px;${isOverdue(c)?'color:var(--danger);font-weight:600':'color:var(--text-muted)'}">${c.sla}${isOverdue(c)?' ⚠️':''}</td>
+      <td>
+        <div style="display:flex;gap:5px;align-items:center">
+          <select class="status-select" id="sel-all-${c.id}">
+            <option value="submitted" ${c.status==='submitted'?'selected':''}>Submitted</option>
+            <option value="review"    ${c.status==='review'?'selected':''}>Under Review</option>
+            <option value="progress"  ${c.status==='progress'?'selected':''}>In Progress</option>
+            <option value="resolved"  ${c.status==='resolved'?'selected':''}>Resolved</option>
+          </select>
+          <button class="btn-update" onclick="updateStatus('${c.id}', 'sel-all-')">Save</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function getFilteredData() {
+  const base = getDeptComplaints();
+  const q    = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+  const st   = document.getElementById('filterStatus')?.value || '';
+  const pr   = document.getElementById('filterPriority')?.value || '';
+  const cons = document.getElementById('filterConstituency')?.value || '';
+
+  return base.filter(c => {
+    if (q && !c.id.toLowerCase().includes(q) && !c.title.toLowerCase().includes(q) && !c.address.toLowerCase().includes(q)) return false;
+    if (st && c.status !== st) return false;
+    if (pr && c.priority !== pr) return false;
+    if (cons && c.constituency !== cons) return false;
+    return true;
+  });
+}
+
+function filterAdminTable() { renderAdminTable(); }
+
+/* ── Escalated Table ── */
+function renderEscalatedTable() {
+  const base = getDeptComplaints();
+  const escItems = base.filter(c => c.escalated || isOverdue(c));
+  document.getElementById('escalatedTableBody').innerHTML = escItems.length === 0
+    ? '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-muted)">✅ No escalated complaints for this department</td></tr>'
+    : escItems.map(c => `
+        <tr>
+          <td><code style="font-size:11px;color:var(--danger);font-weight:700">${c.id}</code></td>
+          <td>
+            <div style="font-weight:600;color:var(--text-primary)">${c.title}</div>
+            <div style="font-size:11px;color:var(--text-muted)">${c.dept}</div>
+          </td>
+          <td>
+            <div style="font-size:12px">${c.address}</div>
+            <div style="font-size:10px;color:var(--text-muted)">${c.constituency}</div>
+          </td>
+          <td>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">
+              🚗 Travel Direction
+            </a>
+          </td>
+          <td>${priorityBadge(c.priority)}</td>
+          <td style="color:var(--danger);font-weight:600;font-size:12px">
+            ${isOverdue(c) ? `${Math.abs(daysDiff(new Date(), c.sla))} days overdue` : 'Manually escalated'}
+          </td>
+          <td>
+            <button class="btn-resolve" onclick="quickResolve('${c.id}')">Mark Resolved</button>
+          </td>
+        </tr>
+      `).join('');
+}
+
+/* ── Resolved Table ── */
+function renderResolvedTable() {
+  const base = getDeptComplaints();
+  const resolved = base.filter(c => c.status === 'resolved');
+  document.getElementById('resolvedTableBody').innerHTML = resolved.length === 0
+    ? '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-muted)">No resolved complaints yet</td></tr>'
+    : resolved.map(c => {
+        const days = c.resolvedDate ? daysDiff(c.resolvedDate, c.submitted) : '—';
+        return `
+          <tr>
+            <td><code style="font-size:11px;color:var(--success);font-weight:700">${c.id}</code></td>
+            <td style="font-weight:600;color:var(--text-primary)">${c.title}</td>
+            <td style="font-size:12px">${c.dept}</td>
+            <td style="font-size:12px">${c.address}</td>
+            <td>${priorityBadge(c.priority)}</td>
+            <td style="font-size:12px;color:var(--text-muted)">${c.submitted}</td>
+            <td style="font-size:12px;color:var(--success);font-weight:600">${c.resolvedDate || '—'}</td>
+            <td style="font-size:12px">${days} days</td>
+          </tr>
+        `;
+      }).join('');
+}
+
+/* ── Reports Page ── */
+function renderReports() {
+  const all = getDeptComplaints();
+  const byStatus = {
+    submitted: all.filter(c=>c.status==='submitted').length,
+    review:    all.filter(c=>c.status==='review').length,
+    progress:  all.filter(c=>c.status==='progress').length,
+    resolved:  all.filter(c=>c.status==='resolved').length,
+  };
+  const resolved = all.filter(c=>c.status==='resolved');
+  const avgDays = resolved.length
+    ? Math.round(resolved.reduce((acc,c) => acc + (c.resolvedDate ? daysDiff(c.resolvedDate, c.submitted) : 0), 0) / resolved.length)
+    : 0;
+
+  document.getElementById('reportStatsRow').innerHTML = `
+    <div class="admin-stat-card"><div class="value" style="color:var(--blue)">${all.length}</div><div class="label">Total Department Tasks</div></div>
+    <div class="admin-stat-card"><div class="value" style="color:var(--success)">${resolved.length}</div><div class="label">Completed / Resolved</div></div>
+    <div class="admin-stat-card"><div class="value" style="color:var(--danger)">${all.filter(c=>c.escalated||isOverdue(c)).length}</div><div class="label">Escalated Past SLA</div></div>
+    <div class="admin-stat-card"><div class="value" style="color:var(--warning)">${avgDays}</div><div class="label">Avg. Resolution Days</div></div>
+  `;
+
+  const breakdown = [
+    { label:'Submitted (New)', val: byStatus.submitted, total: all.length, color:'#2563eb' },
+    { label:'Under Review',    val: byStatus.review,    total: all.length, color:'#d97706' },
+    { label:'In Progress',     val: byStatus.progress,  total: all.length, color:'#0284c7' },
+    { label:'Resolved',        val: byStatus.resolved,  total: all.length, color:'#16a34a' },
+  ];
+
+  document.getElementById('reportBreakdown').innerHTML = breakdown.map(b => `
+    <div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px">
+        <span style="color:var(--text-secondary)">${b.label}</span>
+        <span style="font-weight:600">${b.val} / ${b.total}</span>
+      </div>
+      <div style="height:7px;background:var(--bg-panel);border-radius:4px;overflow:hidden">
+        <div style="height:100%;width:${b.total?Math.round(b.val/b.total*100):0}%;background:${b.color};border-radius:4px;transition:width 0.5s ease"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── Interactive Modal Leaflet Map for Officers ── */
+let modalMap = null;
+let modalMarker = null;
+
+function openLocationModal(id, title, address, lat, lng) {
+  document.getElementById('modalMapTitle').textContent = `📍 ${id} — ${title}`;
+  document.getElementById('modalMapAddress').textContent = `Address: ${address}`;
+  document.getElementById('modalMapCoords').textContent = `GPS: ${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E`;
+  document.getElementById('modalGmapsBtn').href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  document.getElementById('locationModal').classList.add('show');
+
+  setTimeout(() => {
+    if (!modalMap) {
+      modalMap = L.map('modalLeafletMap').setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(modalMap);
+      modalMarker = L.marker([lat, lng]).addTo(modalMap);
+    } else {
+      modalMap.setView([lat, lng], 15);
+      modalMarker.setLatLng([lat, lng]);
+      modalMap.invalidateSize();
+    }
+  }, 150);
+}
+
+function closeMapModal() {
+  document.getElementById('locationModal').classList.remove('show');
+}
+
+/* ── Helper Utilities ── */
+function escapeQuotes(str) {
+  return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function isOverdue(c) {
+  if (c.status === 'resolved') return false;
+  return c.sla && new Date(c.sla) < new Date();
+}
+
+function daysDiff(d1, d2) {
+  return Math.round((new Date(d1) - new Date(d2)) / 86400000);
+}
+
+function priorityBadge(p) {
+  const cls = { critical:'priority-critical', high:'priority-high', medium:'priority-medium', low:'priority-low' };
+  return `<span class="priority-badge ${cls[p] || ''}">${(p||'').toUpperCase()}</span>`;
+}
+
+function statusBadge(s) {
+  const map = {
+    submitted: ['status-submitted','Submitted'],
+    review:    ['status-review','Under Review'],
+    progress:  ['status-progress','In Progress'],
+    resolved:  ['status-resolved','Resolved'],
+  };
+  const [cls, label] = map[s] || ['status-submitted', s];
+  return `<span class="status-badge ${cls}">${label}</span>`;
+}
+
+function updateStatus(id, prefix = 'sel-') {
+  const sel = document.getElementById(`${prefix}${id}`) || document.getElementById(`sel-${id}`);
+  if (!sel) return;
+  const newStatus = sel.value;
+  const idx = adminData.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  adminData[idx].status = newStatus;
+  if (newStatus === 'resolved') {
+    adminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
+    adminData[idx].escalated = false;
+  }
+  showAdminToast(`✅ ${id} status updated to "${newStatus.toUpperCase()}"`, 'success');
+  renderAdminOverview();
+}
+
+function quickResolve(id) {
+  const idx = adminData.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  adminData[idx].status = 'resolved';
+  adminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
+  adminData[idx].escalated = false;
+  showAdminToast(`✅ ${id} marked as Resolved & Closed.`, 'success');
+  renderAdminOverview();
+}
+
+function downloadReport() {
+  const headers = ['ID','Title','Category','Department','Address','Latitude','Longitude','Constituency','Priority','Status','Submitted','SLA','ResolvedDate'];
+  const rows = getDeptComplaints().map(c => [c.id,`"${c.title}"`,c.category,`"${c.dept}"`,`"${c.address}"`,c.lat,c.lng,c.constituency,c.priority,c.status,c.submitted,c.sla,c.resolvedDate||''].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `${currentAdminDept.replace(/\s+/g,'_')}_Complaints_Report.csv`; a.click();
+  showAdminToast('📥 Report CSV downloaded', 'success');
+}
+
+/* ── Bilingual Support for Admin ── */
+function setAdminLang(lang) {
+  currentAdminLang = lang;
+  document.getElementById('adminLangEN').classList.toggle('active', lang === 'en');
+  document.getElementById('adminLangTA').classList.toggle('active', lang === 'ta');
+
+  if (lang === 'ta') {
+    document.querySelectorAll('[data-i18n="overview"]').forEach(el => el.textContent = 'கண்ணோட்டம்');
+    document.querySelectorAll('[data-i18n="complaints"]').forEach(el => el.textContent = 'துறை புகார்கள்');
+    document.querySelectorAll('[data-i18n="escalated"]').forEach(el => el.textContent = 'காலாவதியானவை');
+    document.querySelectorAll('[data-i18n="resolved"]').forEach(el => el.textContent = 'தீர்க்கப்பட்டவை');
+    document.querySelectorAll('[data-i18n="reports"]').forEach(el => el.textContent = 'அறிக்கைகள்');
+  } else {
+    document.querySelectorAll('[data-i18n="overview"]').forEach(el => el.textContent = 'Overview');
+    document.querySelectorAll('[data-i18n="complaints"]').forEach(el => el.textContent = 'Department Complaints');
+    document.querySelectorAll('[data-i18n="escalated"]').forEach(el => el.textContent = 'Escalated (Overdue)');
+    document.querySelectorAll('[data-i18n="resolved"]').forEach(el => el.textContent = 'Resolved Tasks');
+    document.querySelectorAll('[data-i18n="reports"]').forEach(el => el.textContent = 'Analytics & SLA');
+  }
+}
+
+/* ── Clock ── */
+function startAdminClock() {
+  function tick() {
+    const el = document.getElementById('adminClock');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ── Toast ── */
+function showAdminToast(msg, type = 'info') {
+  const t = document.getElementById('adminToast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+</body>
+</html>

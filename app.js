@@ -632,8 +632,13 @@ function openComplaintModal(id) {
     </div>
 
     <div style="background:var(--bg-base);padding:12px;border-radius:var(--radius-sm);margin-bottom:16px">
-      <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">LOCATION</div>
-      <div style="font-size:13px">📍 ${c.location}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div style="font-size:12px;color:var(--text-muted)">EXACT LOCATION & GPS</div>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=11.3410,77.7172" target="_blank" class="btn-nav-gmaps" style="font-size:11px;padding:3px 8px">
+          🚗 Travel Navigation (Google Maps)
+        </a>
+      </div>
+      <div style="font-size:13px;font-weight:600">📍 ${c.location}</div>
     </div>
 
     <div>
@@ -1233,14 +1238,17 @@ function showLocationResult(loc) {
   if (accuracyEl) accuracyEl.textContent = `± ${Math.round(loc.accuracy)}m accuracy · GPS Verified`;
   if (btn) { btn.disabled = false; btn.textContent = '🔄 Re-detect'; }
 
+  // Initialize interactive Leaflet draggable map pin
+  initStep2Map(loc.latitude, loc.longitude);
+
   // Update checklist
   const locIcon = document.getElementById('check-location-icon');
   const locText = document.getElementById('check-location-text');
-  if (locIcon) locIcon.textContent = '✅';
+  if (locIcon) { locIcon.textContent = '✅'; }
   if (locText) { locText.textContent = 'GPS location detected'; locText.style.color = 'var(--success)'; }
 
   checkStep2Complete();
-  showToast('📍 Location captured!', 'success');
+  showToast('📍 Precise Location captured on map!', 'success');
 }
 
 function checkStep2Complete() {
@@ -1504,15 +1512,1204 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('textarea').forEach(ta => {
     ta.addEventListener('focus', () => {
-      ta.style.outline = 'none';
-      ta.style.borderColor = 'var(--primary)';
-      ta.style.boxShadow = '0 0 0 3px var(--primary-glow)';
-      ta.style.background = 'var(--bg-card2)';
+      ta.style.borderColor = 'var(--border-focus)';
+      ta.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)';
     });
     ta.addEventListener('blur', () => {
       ta.style.borderColor = 'var(--border)';
       ta.style.boxShadow = 'none';
-      ta.style.background = 'var(--bg-base)';
     });
   });
 });
+
+/* ══════════════════════════════════════════════════════
+   ESCALATION LOGIC
+   Auto-flag complaints where SLA has passed
+══════════════════════════════════════════════════════ */
+function runEscalationCheck() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  let escalated = 0;
+
+  COMPLAINTS_DATA.forEach(c => {
+    if (c.status === 'resolved') return;
+    if (!c.slaDeadline) return;
+    const deadline = new Date(c.slaDeadline);
+    if (deadline < today && !c.escalated) {
+      c.escalated = true;
+      escalated++;
+    }
+  });
+
+  if (escalated > 0) {
+    showToast(`⚠️ ${escalated} complaint${escalated > 1 ? 's' : ''} auto-escalated — SLA deadline missed`, 'warning');
+  }
+
+  // Update escalated count in sidebar badge if present
+  const badge = document.querySelector('[data-nav="escalated"] .nav-badge');
+  const count = COMPLAINTS_DATA.filter(c => c.escalated).length;
+  if (badge) badge.textContent = count;
+}
+
+/* ══════════════════════════════════════════════════════
+   LEAFLET MAP
+   Real OpenStreetMap integration for the Map page
+══════════════════════════════════════════════════════ */
+let leafletMap = null;
+let mapMarkers = [];
+let currentMapFilter = 'all';
+
+// Erode District bounding coordinates (real)
+const ERODE_CENTER = [11.3410, 77.7172];
+const MAP_ZOOM = 13;
+
+// Color coding by status
+const STATUS_COLORS = {
+  submitted: '#2563eb',
+  review:    '#d97706',
+  progress:  '#0284c7',
+  resolved:  '#16a34a',
+  escalated: '#dc2626',
+};
+
+// Erode area coordinates for mock complaint pins
+const ERODE_COORDS = [
+  [11.3415, 77.7180], [11.3395, 77.7165], [11.3430, 77.7145],
+  [11.3380, 77.7195], [11.3445, 77.7210], [11.3360, 77.7150],
+  [11.3420, 77.7130], [11.3400, 77.7220], [11.3460, 77.7175],
+  [11.3370, 77.7140],
+];
+
+function initLeafletMap() {
+  const container = document.getElementById('leafletMap');
+  if (!container || leafletMap) return;
+
+  // Check Leaflet is loaded
+  if (typeof L === 'undefined') {
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:8px;color:var(--text-muted)"><span style="font-size:36px">🗺️</span><span>Map requires internet connection</span></div>';
+    return;
+  }
+
+  leafletMap = L.map('leafletMap', {
+    center: ERODE_CENTER,
+    zoom: MAP_ZOOM,
+    zoomControl: true,
+  });
+
+  // OpenStreetMap tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18,
+  }).addTo(leafletMap);
+
+  // Plot complaint pins
+  plotMapPins('all');
+
+  // Render nearby list
+  renderNearbyComplaints();
+}
+
+function plotMapPins(filter) {
+  // Clear old markers
+  mapMarkers.forEach(m => m.remove());
+  mapMarkers = [];
+
+  const data = COMPLAINTS_DATA.map((c, i) => ({
+    ...c,
+    lat: ERODE_COORDS[i % ERODE_COORDS.length][0] + (Math.random() * 0.004 - 0.002),
+    lng: ERODE_COORDS[i % ERODE_COORDS.length][1] + (Math.random() * 0.004 - 0.002),
+  }));
+
+  data.forEach(c => {
+    // Apply filter
+    if (filter !== 'all') {
+      if (filter === 'critical' && c.priority !== 'critical') return;
+      else if (filter !== 'critical' && c.category !== filter) return;
+    }
+
+    const color = c.escalated ? STATUS_COLORS.escalated : (STATUS_COLORS[c.status] || STATUS_COLORS.submitted);
+
+    // Custom circle marker
+    const marker = L.circleMarker([c.lat, c.lng], {
+      radius: c.priority === 'critical' ? 10 : 7,
+      fillColor: color,
+      color: '#fff',
+      weight: 2,
+      opacity: 1,
+      fillOpacity: 0.9,
+    });
+
+    // Popup
+    const statusLabels = { submitted:'Submitted', review:'Under Review', progress:'In Progress', resolved:'Resolved' };
+    marker.bindPopup(`
+      <div style="font-family:Inter,sans-serif;min-width:200px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:5px">${c.icon || ''} ${c.title}</div>
+        <div style="font-size:11px;color:#64748b;margin-bottom:3px">${c.id} · ${c.constituency}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:${color}20;color:${color};border:1px solid ${color}40">
+            ${c.priority.toUpperCase()}
+          </span>
+          <span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:#f1f5f9;color:#475569">
+            ${statusLabels[c.status] || c.status}
+          </span>
+          ${c.escalated ? '<span style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:#fef2f2;color:#dc2626">🚨 ESCALATED</span>' : ''}
+        </div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:6px">📅 ${c.submittedDate}</div>
+      </div>
+    `, { maxWidth: 240 });
+
+    marker.addTo(leafletMap);
+    mapMarkers.push(marker);
+  });
+}
+
+function filterMapBy(filter, btn) {
+  document.querySelectorAll('#page-map .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentMapFilter = filter;
+
+  if (leafletMap) {
+    plotMapPins(filter);
+  }
+}
+
+function renderNearbyComplaints() {
+  const container = document.getElementById('nearbyComplaintsList');
+  const countEl   = document.getElementById('nearbyCount');
+  if (!container) return;
+
+  const nearby = COMPLAINTS_DATA.filter(c => c.constituency === 'Erode East').slice(0, 5);
+  if (countEl) countEl.textContent = `${nearby.length} in your constituency`;
+
+  container.innerHTML = nearby.map(c => {
+    const [statusClass, statusLabel] = {
+      submitted: ['status-submitted', 'Submitted'],
+      review:    ['status-review', 'Under Review'],
+      progress:  ['status-progress', 'In Progress'],
+      resolved:  ['status-resolved', 'Resolved'],
+    }[c.status] || ['status-submitted', 'Submitted'];
+
+    return `
+      <div class="complaint-card" onclick="openComplaintDetail('${c.id}')">
+        <div class="complaint-cat-icon">${c.icon}</div>
+        <div class="complaint-info">
+          <div class="complaint-title">${c.title}</div>
+          <div class="complaint-meta">
+            <span>${c.id}</span>
+            <span>${c.constituency}</span>
+            <span>${c.submittedDate}</span>
+          </div>
+        </div>
+        <div class="complaint-right">
+          <span class="status-badge ${statusClass}">${statusLabel}</span>
+          <span class="priority-badge priority-${c.priority}">${c.priority.toUpperCase()}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   PATCH: navigateTo — trigger map init on page switch
+══════════════════════════════════════════════════════ */
+const _origNavigateTo = window.navigateTo;
+window.navigateTo = function(page) {
+  if (typeof _origNavigateTo === 'function') _origNavigateTo(page);
+  if (page === 'map') {
+    // Small delay to let page become visible before map init
+    setTimeout(initLeafletMap, 100);
+  }
+};
+
+/* Run escalation check on dashboard load */
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.body.classList.contains('dashboard-body')) {
+    runEscalationCheck();
+  }
+  // Initialize saved language
+  const savedLang = localStorage.getItem('erode_portal_lang') || 'en';
+  setPortalLang(savedLang, false);
+});
+
+/* ══════════════════════════════════════════════════════
+   STEP 2: PRECISE LEAFLET DRAGGABLE PIN & GPS PICKER
+══════════════════════════════════════════════════════ */
+let step2Map = null;
+let step2Marker = null;
+
+function initStep2Map(lat, lng) {
+  const container = document.getElementById('step2LeafletMap');
+  if (!container || typeof L === 'undefined') return;
+
+  const gmapsBtn = document.getElementById('step2GmapsPreview');
+  if (gmapsBtn) gmapsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  if (!step2Map) {
+    step2Map = L.map('step2LeafletMap').setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(step2Map);
+
+    step2Marker = L.marker([lat, lng], { draggable: true }).addTo(step2Map);
+
+    step2Marker.on('dragend', function (e) {
+      const pos = e.target.getLatLng();
+      updateCapturedCoords(pos.lat, pos.lng);
+    });
+
+    step2Map.on('click', function (e) {
+      step2Marker.setLatLng(e.latlng);
+      updateCapturedCoords(e.latlng.lat, e.latlng.lng);
+    });
+  } else {
+    step2Map.setView([lat, lng], 16);
+    step2Marker.setLatLng([lat, lng]);
+    step2Map.invalidateSize();
+  }
+}
+
+function updateCapturedCoords(lat, lng) {
+  if (!capturedLocation) capturedLocation = {};
+  capturedLocation.latitude = lat;
+  capturedLocation.longitude = lng;
+
+  const coordsEl = document.getElementById('locationCoords');
+  if (coordsEl) coordsEl.textContent = `${lat.toFixed(6)}° N, ${lng.toFixed(6)}° E (GPS Adjusted)`;
+
+  const gmapsBtn = document.getElementById('step2GmapsPreview');
+  if (gmapsBtn) gmapsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  showToast('📍 Precise Map Pin updated for field repair travel!', 'info');
+}
+
+/* ══════════════════════════════════════════════════════
+   VOICE INPUT & AUDIO VOICE NOTE ATTACHMENT
+══════════════════════════════════════════════════════ */
+let speechRecognition = null;
+let isRecognizing = false;
+let mediaRecorder = null;
+let audioChunks = [];
+let capturedAudioBlob = null;
+let isRecordingAudio = false;
+
+function toggleSpeechRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const statusEl = document.getElementById('voiceStatus');
+  const micIcon = document.getElementById('voiceMicIcon');
+  const currentLang = localStorage.getItem('erode_portal_lang') || 'en';
+
+  if (!SpeechRec) {
+    showToast('Speech recognition not supported in this browser. Please use Chrome/Edge.', 'error');
+    return;
+  }
+
+  if (isRecognizing) {
+    if (speechRecognition) speechRecognition.stop();
+    isRecognizing = false;
+    if (micIcon) micIcon.textContent = '🎙️';
+    if (statusEl) statusEl.textContent = '';
+    return;
+  }
+
+  speechRecognition = new SpeechRec();
+  speechRecognition.continuous = true;
+  speechRecognition.interimResults = true;
+  speechRecognition.lang = currentLang === 'ta' ? 'ta-IN' : 'en-IN';
+
+  speechRecognition.onstart = function() {
+    isRecognizing = true;
+    if (micIcon) micIcon.textContent = '🟢';
+    if (statusEl) statusEl.textContent = currentLang === 'ta' ? '🎙️ தமிழில் பேசுங்கள்...' : '🎙️ Listening... speak clearly';
+    showToast(currentLang === 'ta' ? '🎙️ தமிழில் பேசுங்கள் — உரை தானாக உள்ளிடப்படும்' : '🎙️ Voice-to-Text active — speak now', 'info');
+  };
+
+  speechRecognition.onresult = function(event) {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      transcript += event.results[i][0].transcript;
+    }
+    const descArea = document.getElementById('cDesc');
+    if (descArea && transcript) {
+      descArea.value = (descArea.value ? descArea.value + ' ' : '') + transcript;
+      onDescInput(descArea);
+    }
+  };
+
+  speechRecognition.onerror = function(e) {
+    isRecognizing = false;
+    if (micIcon) micIcon.textContent = '🎙️';
+    if (statusEl) statusEl.textContent = '';
+    showToast('Voice error: ' + (e.error || 'Check mic permission'), 'error');
+  };
+
+  speechRecognition.onend = function() {
+    isRecognizing = false;
+    if (micIcon) micIcon.textContent = '🎙️';
+    if (statusEl) statusEl.textContent = '';
+  };
+
+  speechRecognition.start();
+}
+
+async function toggleAudioVoiceNote() {
+  const recIcon = document.getElementById('noteRecIcon');
+  const noteText = document.getElementById('voiceNoteText');
+  const statusEl = document.getElementById('voiceStatus');
+  const currentLang = localStorage.getItem('erode_portal_lang') || 'en';
+
+  if (isRecordingAudio) {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    isRecordingAudio = false;
+    if (recIcon) recIcon.textContent = '🔴';
+    if (noteText) noteText.textContent = currentLang === 'ta' ? 'குரல் பதிவு செய்' : 'Record Voice Note';
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      capturedAudioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const audioUrl = URL.createObjectURL(capturedAudioBlob);
+      const player = document.getElementById('voiceNoteAudio');
+      const container = document.getElementById('voiceNotePlayerContainer');
+      if (player && container) {
+        player.src = audioUrl;
+        container.style.display = 'flex';
+      }
+      stream.getTracks().forEach(t => t.stop());
+      showToast('🎵 Voice Note attached to complaint!', 'success');
+    };
+
+    mediaRecorder.start();
+    isRecordingAudio = true;
+    if (recIcon) recIcon.textContent = '⏹️';
+    if (noteText) noteText.textContent = currentLang === 'ta' ? 'நிறுத்து (Stop)' : 'Stop Recording';
+    if (statusEl) statusEl.textContent = currentLang === 'ta' ? '🔴 பதிவு செய்யப்படுகிறது...' : '🔴 Recording audio note...';
+    showToast(currentLang === 'ta' ? '🔴 குரல் பதிவு செய்யப்படுகிறது... முடிந்ததும் Stop கிளிக் செய்யவும்' : '🔴 Recording voice note... click Stop when finished', 'warning');
+  } catch (err) {
+    showToast('Microphone access denied. Please allow microphone permissions.', 'error');
+  }
+}
+
+function deleteVoiceNote() {
+  capturedAudioBlob = null;
+  const container = document.getElementById('voiceNotePlayerContainer');
+  const player = document.getElementById('voiceNoteAudio');
+  if (container) container.style.display = 'none';
+  if (player) player.src = '';
+  showToast('🗑️ Voice note removed', 'info');
+}
+
+/* ══════════════════════════════════════════════════════
+   FULL-SCREEN COMPREHENSIVE BILINGUAL ENGINE (TAMIL & ENGLISH)
+══════════════════════════════════════════════════════ */
+const FULL_I18N = {
+  en: {
+    govText: 'Government of Tamil Nadu',
+    districtText: 'Erode District Administration',
+    heroBadge: 'AI-Powered Civic Platform',
+    heroTitle1: 'Your Voice,',
+    heroTitle2: 'Our Action.',
+    heroDesc: 'Report civic issues — potholes, water leaks, garbage, electricity — and track resolution in real-time with GPS verification and automated SLA escalation.',
+    feat1Title: 'Live GPS & Camera',
+    feat1Desc: 'Verified incident reporting',
+    feat2Title: 'AI Priority Engine',
+    feat2Desc: 'Smart routing & SLA',
+    feat3Title: 'Field Navigation',
+    feat3Desc: 'Direct maps for repair staff',
+    feat4Title: 'Auto Escalation',
+    feat4Desc: 'Deadline-based alerts',
+    statResolved: 'Resolved',
+    statRate: 'Resolution Rate',
+    statResponse: 'Avg. Response',
+    tabCitizen: '👤 Citizen Login',
+    tabRegister: '📝 Register',
+    tabAdmin: '🏛️ Official Login',
+    cLoginHeader: 'Citizen Sign In',
+    cLoginSub: 'Enter your registered mobile or email to track complaints',
+    cLoginUserLabel: 'Mobile Number / Email',
+    cLoginPassLabel: 'Password',
+    btnCitizenLogin: 'Sign In as Citizen →',
+    newRegHint: 'New user? Register your constituency',
+    regHeader: 'Citizen Registration',
+    regSub: 'Create your verified citizen account for Erode district',
+    regNameLabel: 'Full Name',
+    regPhoneLabel: 'Mobile Number',
+    regConstLabel: 'Erode Constituency',
+    regPassLabel: 'Create Password',
+    btnRegister: 'Register & Open Dashboard →',
+    adminHeader: 'Department Officer Sign In',
+    adminSub: 'Authorized access for field engineers & resolution staff',
+    adminDeptLabel: 'Select Department',
+    adminUserLabel: 'Officer Username',
+    adminPassLabel: 'Password',
+    btnAdminLogin: 'Login to Department Dashboard →',
+    navOverview: 'Overview',
+    navComplaints: 'My Complaints',
+    navNewComplaint: 'New Complaint',
+    navMap: 'Public Map',
+    navHistory: 'History',
+    navAnalytics: 'Analytics',
+    navProfile: 'Profile',
+    navSignOut: 'Sign Out',
+    pageOverviewTitle: 'Overview',
+    pageOverviewSub: "Welcome back! Here's your complaint summary.",
+    statTotal: 'Total Complaints',
+    statTotalSub: 'Lifetime submissions',
+    statPending: 'Pending Action',
+    statPendingSub: 'Awaiting resolution',
+    statResolvedDash: 'Resolved',
+    statResolvedSub: 'Successfully closed',
+    statEscalated: 'Escalated',
+    statEscalatedSub: 'Past SLA deadline',
+    recentComplaintsTitle: 'Recent Complaints',
+    btnNewComplaintDash: '➕ New Complaint',
+    constOverviewTitle: 'Constituency Overview',
+    slaTrackerTitle: 'SLA Resolution Tracker',
+    step1Label: 'Details',
+    step2Label: 'Photo & GPS',
+    step3Label: 'Review',
+    cTitleLabel: 'Complaint Title *',
+    cCategoryLabel: 'Category *',
+    catRoad: 'Road',
+    catGarbage: 'Garbage',
+    catWater: 'Water',
+    catElectricity: 'Electricity',
+    catDrainage: 'Drainage',
+    catOther: 'Other',
+    cDescLabel: 'Problem Description *',
+    voiceInputBtn: 'Speak (Voice-to-Text)',
+    voiceNoteBtn: 'Record Voice Note',
+    sevLabel: 'How severe is this issue?',
+    sevLow: '😐 Minor',
+    sevMed: '⚠️ Moderate',
+    sevHigh: '🔴 Serious',
+    sevCrit: '🚨 Emergency',
+    btnNextPhoto: 'Next: Photo & Location →',
+    cameraBoxTitle: '📷 Live Incident Camera',
+    cameraBoxSub: 'Gallery upload disabled',
+    btnStartCamera: 'Start Live Camera',
+    btnCapturePhoto: '📸 Capture Verified Photo',
+    gpsBoxTitle: '📍 GPS Location',
+    btnDetectGps: '📡 Detect Location',
+    dragPinText: '💡 Drag marker to adjust exact repair spot.',
+    btnNextReview: 'Next: Review →',
+    declarationText: 'I declare that this complaint represents an authentic issue and the captured photo & GPS location are accurate.',
+    btnSubmitComplaint: '🚀 Submit Complaint',
+    mapTitle: 'Public Complaints Map — Erode District',
+    historyTitle: 'Complaint History',
+    btnExportCsv: '⬇ Export CSV',
+    analyticsTitle: 'Analytics & SLA Breakdown',
+    adminMenuOverview: 'Overview',
+    adminMenuComplaints: 'Department Complaints',
+    adminMenuEscalated: 'Escalated (Overdue)',
+    adminMenuResolved: 'Resolved Tasks',
+    adminMenuReports: 'Analytics & SLA',
+    adminLogoutBtn: '🚪 Logout to Login Screen',
+    adminAssignedTasksTitle: 'Department Assigned Tasks',
+    thId: 'ID',
+    thComplaint: 'Complaint',
+    thLocation: 'Location / Landmark',
+    thNavigation: 'Field Navigation',
+    thPriority: 'Priority',
+    thStatus: 'Status',
+    thSla: 'SLA Deadline',
+    thAction: 'Update Status',
+  },
+  ta: {
+    govText: 'தமிழ்நாடு அரசு',
+    districtText: 'ஈரோடு மாவட்ட நிர்வாகம்',
+    heroBadge: 'செயற்கை நுண்ணறிவு குடிமக்கள் புகார் தளம்',
+    heroTitle1: 'உங்கள் குரல்,',
+    heroTitle2: 'எங்கள் செயல்.',
+    heroDesc: 'சாலை பள்ளங்கள், குடிநீர் கசிவு, குப்பை தேக்கம், மின்சார பிரச்சனைகளை நேரடியாகப் புகாரளித்து, நேரடி ஜிபிஎஸ் மற்றும் காலக்கெடுவுடன் தீர்வு காணுங்கள்.',
+    feat1Title: 'நேரடி ஜிபிஎஸ் & கேமரா',
+    feat1Desc: 'சரிபார்க்கப்பட்ட சம்பவப் பதிவு',
+    feat2Title: 'செயற்கை நுண்ணறிவு முன்னுரிமை',
+    feat2Desc: 'தானியங்கி துறை ஒதுக்கீடு',
+    feat3Title: 'களப் பணியாளர் வரைபடம்',
+    feat3Desc: 'பழுதுபார்க்கும் பணியாளர்களுக்கான வழி',
+    feat4Title: 'தானியங்கி மேல்முறையீடு',
+    feat4Desc: 'காலக்கெடு தவறிய எச்சரிக்கை',
+    statResolved: 'தீர்க்கப்பட்டவை',
+    statRate: 'தீர்வு விகிதம்',
+    statResponse: 'சராசரி பதிலளிப்பு',
+    tabCitizen: '👤 குடிமக்கள் உள்நுழைவு',
+    tabRegister: '📝 புதிய பதிவு',
+    tabAdmin: '🏛️ அதிகாரி உள்நுழைவு',
+    cLoginHeader: 'குடிமக்கள் உள்நுழைவு',
+    cLoginSub: 'புகார்களை கண்காணிக்க பதிவுசெய்த மொபைல் அல்லது மின்னஞ்சலை உள்ளிடவும்',
+    cLoginUserLabel: 'மொபைல் எண் / மின்னஞ்சல்',
+    cLoginPassLabel: 'கடவுச்சொல்',
+    btnCitizenLogin: 'குடிமகனாக உள்நுழைக →',
+    newRegHint: 'புதிய பயனரா? உங்கள் தொகுதியை பதிவு செய்யுங்கள்',
+    regHeader: 'குடிமக்கள் பதிவு',
+    regSub: 'ஈரோடு மாவட்டத்திற்கான சரிபார்க்கப்பட்ட குடிமக்கள் கணக்கை உருவாக்கவும்',
+    regNameLabel: 'முழுப் பெயர்',
+    regPhoneLabel: 'மொபைல் எண்',
+    regConstLabel: 'ஈரோடு சட்டமன்றத் தொகுதி',
+    regPassLabel: 'புதிய கடவுச்சொல்',
+    btnRegister: 'பதிவு செய்து தொடரவும் →',
+    adminHeader: 'துறை அதிகாரி உள்நுழைவு',
+    adminSub: 'களப் பொறியாளர்கள் மற்றும் தீர்வுப் பணியாளர்களுக்கான அனுமதி',
+    adminDeptLabel: 'துறையைத் தேர்ந்தெடுக்கவும்',
+    adminUserLabel: 'அதிகாரி பயனர் பெயர்',
+    adminPassLabel: 'கடவுச்சொல்',
+    btnAdminLogin: 'துறை கட்டுப்பாட்டு அறைக்குச் செல்லவும் →',
+    navOverview: 'கண்ணோட்டம்',
+    navComplaints: 'என் புகார்கள்',
+    navNewComplaint: 'புதிய புகார்',
+    navMap: 'பொது வரைபடம்',
+    navHistory: 'புகார் வரலாறு',
+    navAnalytics: 'பகுப்பாய்வு',
+    navProfile: 'சுயவிவரம்',
+    navSignOut: 'வெளியேறு',
+    pageOverviewTitle: 'கண்ணோட்டம்',
+    pageOverviewSub: 'வணக்கம்! உங்கள் புகார்களின் விவரம் இங்கே.',
+    statTotal: 'மொத்த புகார்கள்',
+    statTotalSub: 'இதுவரை சமர்ப்பித்தவை',
+    statPending: 'நிலுவையில் உள்ளவை',
+    statPendingSub: 'தீர்வுக்காக காத்திருப்பவை',
+    statResolvedDash: 'தீர்க்கப்பட்டவை',
+    statResolvedSub: 'வெற்றிகரமாக முடிக்கப்பட்டவை',
+    statEscalated: 'காலக்கெடு மீறியவை',
+    statEscalatedSub: 'அவசர நடவடிக்கை தேவை',
+    recentComplaintsTitle: 'சமீபத்திய புகார்கள்',
+    btnNewComplaintDash: '➕ புதிய புகார்',
+    constOverviewTitle: 'தொகுதி விவரக் கண்ணோட்டம்',
+    slaTrackerTitle: 'காலக்கெடு கண்காணிப்பு',
+    step1Label: 'விவரங்கள்',
+    step2Label: 'புகைப்படம் & GPS',
+    step3Label: 'சரிபார்த்தல்',
+    cTitleLabel: 'புகார் தலைப்பு *',
+    cCategoryLabel: 'துறை வகை *',
+    catRoad: 'சாலை',
+    catGarbage: 'குப்பை',
+    catWater: 'குடிநீர்',
+    catElectricity: 'மின்சாரம்',
+    catDrainage: 'சாக்கடை',
+    catOther: 'பிற',
+    cDescLabel: 'புகாரின் விவரம் *',
+    voiceInputBtn: 'பேசி உள்ளிடு (Voice-to-Text)',
+    voiceNoteBtn: 'குரல் பதிவு செய்',
+    sevLabel: 'இந்த பிரச்சனையின் தீவிரம் என்ன?',
+    sevLow: '😐 குறைவு',
+    sevMed: '⚠️ நடுத்தரம்',
+    sevHigh: '🔴 தீவிரமானது',
+    sevCrit: '🚨 அவசரம்',
+    btnNextPhoto: 'அடுத்தது: புகைப்படம் & இருப்பிடம் →',
+    cameraBoxTitle: '📷 நேரடி சம்பவ கேமரா',
+    cameraBoxSub: 'பழைய படங்கள் பதிவேற்ற முடியாது',
+    btnStartCamera: 'நேரடி கேமராவைத் தொடங்கு',
+    btnCapturePhoto: '📸 சரிபார்க்கப்பட்ட புகைப்படம் எடு',
+    gpsBoxTitle: '📍 ஜிபிஎஸ் இருப்பிடம்',
+    btnDetectGps: '📡 ஜிபிஎஸ் கண்டறி',
+    dragPinText: '💡 பழுதுபார்க்க வேண்டிய இடத்தை வரைபடத்தில் துல்லியமாக நகர்த்தவும்.',
+    btnNextReview: 'அடுத்தது: சரிபார்த்தல் →',
+    declarationText: 'இந்த புகார் உண்மையானது என்றும், புகைப்படம் மற்றும் ஜிபிஎஸ் துல்லியமானது என்றும் உறுதி கூறுகிறேன்.',
+    btnSubmitComplaint: '🚀 புகாரை சமர்ப்பிக்கவும்',
+    mapTitle: 'பொது வரைபடம் — ஈரோடு மாவட்டம்',
+    historyTitle: 'புகார் வரலாறு',
+    btnExportCsv: '⬇ பதிவிறக்குக (CSV)',
+    analyticsTitle: 'பகுப்பாய்வு & காலக்கெடு விவரம்',
+    adminMenuOverview: 'கண்ணோட்டம்',
+    adminMenuComplaints: 'துறை புகார்கள்',
+    adminMenuEscalated: 'காலாவதியான புகார்கள்',
+    adminMenuResolved: 'முடிக்கப்பட்ட பணிகள்',
+    adminMenuReports: 'பகுப்பாய்வு & SLA',
+    adminLogoutBtn: '🚪 உள்நுழைவு பக்கத்திற்குச் செல்க',
+    adminAssignedTasksTitle: 'துறைக்கு ஒதுக்கப்பட்ட பணிகள்',
+    thId: 'எண்',
+    thComplaint: 'புகார்',
+    thLocation: 'இடம் / அடையாளம்',
+    thNavigation: 'பயண வழிகாட்டி',
+    thPriority: 'முன்னுரிமை',
+    thStatus: 'நிலை',
+    thSla: 'காலக்கெடு',
+    thAction: 'நிலையை மாற்று',
+  }
+};
+
+function setPortalLang(lang, showNotification = true) {
+  localStorage.setItem('erode_portal_lang', lang);
+
+  // Update button active state across all headers
+  ['masterLangEN', 'dashLangEN', 'indexLangEN', 'adminLangEN'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', lang === 'en');
+  });
+  ['masterLangTA', 'dashLangTA', 'indexLangTA', 'adminLangTA'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', lang === 'ta');
+  });
+
+  const t = FULL_I18N[lang] || FULL_I18N.en;
+
+  // 1. Header Emblem
+  const govText = document.querySelector('.gov-text');
+  if (govText) govText.textContent = t.govText;
+  const distText = document.querySelector('.district-text');
+  if (distText) distText.textContent = t.districtText;
+
+  // 2. Hero Section
+  const heroBadge = document.querySelector('.hero-badge');
+  if (heroBadge) heroBadge.innerHTML = `<span class="badge-dot"></span> ${t.heroBadge}`;
+  const tLine1 = document.querySelector('.title-line:not(.gradient-text)');
+  if (tLine1) tLine1.textContent = t.heroTitle1;
+  const tLine2 = document.querySelector('.title-line.gradient-text');
+  if (tLine2) tLine2.textContent = t.heroTitle2;
+  const heroDesc = document.querySelector('.hero-desc');
+  if (heroDesc) heroDesc.textContent = t.heroDesc;
+
+  // Feature Cards
+  const featCards = document.querySelectorAll('.feat-card');
+  if (featCards.length >= 4) {
+    featCards[0].querySelector('strong').textContent = t.feat1Title;
+    featCards[0].querySelector('p').textContent = t.feat1Desc;
+    featCards[1].querySelector('strong').textContent = t.feat2Title;
+    featCards[1].querySelector('p').textContent = t.feat2Desc;
+    featCards[2].querySelector('strong').textContent = t.feat3Title;
+    featCards[2].querySelector('p').textContent = t.feat3Desc;
+    featCards[3].querySelector('strong').textContent = t.feat4Title;
+    featCards[3].querySelector('p').textContent = t.feat4Desc;
+  }
+
+  // Hero Stats
+  const statLabels = document.querySelectorAll('.stats-row .stat-label');
+  if (statLabels.length >= 3) {
+    statLabels[0].textContent = t.statResolved;
+    statLabels[1].textContent = t.statRate;
+    statLabels[2].textContent = t.statResponse;
+  }
+
+  // 3. Auth Tabs & Forms
+  const tabCitizen = document.getElementById('tabBtnCitizen');
+  if (tabCitizen) tabCitizen.textContent = t.tabCitizen;
+  const tabRegister = document.getElementById('tabBtnRegister');
+  if (tabRegister) tabRegister.textContent = t.tabRegister;
+  const tabAdmin = document.getElementById('tabBtnAdmin');
+  if (tabAdmin) tabAdmin.textContent = t.tabAdmin;
+
+  // Form 1
+  const f1Header = document.querySelector('#formCitizenLogin .form-header h2');
+  if (f1Header) f1Header.textContent = t.cLoginHeader;
+  const f1Sub = document.querySelector('#formCitizenLogin .form-header p');
+  if (f1Sub) f1Sub.textContent = t.cLoginSub;
+  const btnCLogin = document.getElementById('btnCitizenLogin') || document.querySelector('#formCitizenLogin button[type="submit"]');
+  if (btnCLogin) btnCLogin.textContent = t.btnCitizenLogin;
+
+  // Form 2
+  const f2Header = document.querySelector('#formCitizenRegister .form-header h2');
+  if (f2Header) f2Header.textContent = t.regHeader;
+  const f2Sub = document.querySelector('#formCitizenRegister .form-header p');
+  if (f2Sub) f2Sub.textContent = t.regSub;
+  const btnReg = document.querySelector('#formCitizenRegister button[type="submit"]');
+  if (btnReg) btnReg.textContent = t.btnRegister;
+
+  // Form 3
+  const f3Header = document.querySelector('#formAdminLogin .form-header h2');
+  if (f3Header) f3Header.textContent = t.adminHeader;
+  const f3Sub = document.querySelector('#formAdminLogin .form-header p');
+  if (f3Sub) f3Sub.textContent = t.adminSub;
+  const btnAdminLog = document.querySelector('#formAdminLogin button[type="submit"]');
+  if (btnAdminLog) btnAdminLog.textContent = t.btnAdminLogin;
+
+  // 4. Citizen Navigation
+  const mapNav = {
+    'nav-overview': t.navOverview,
+    'nav-complaints': t.navComplaints,
+    'nav-new-complaint': t.navNewComplaint,
+    'nav-map': t.navMap,
+    'nav-history': t.navHistory,
+    'nav-reports': t.navAnalytics,
+    'nav-profile': t.navProfile,
+  };
+  Object.keys(mapNav).forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE && node.textContent.trim()) {
+          node.textContent = ' ' + mapNav[id] + ' ';
+        }
+      });
+    }
+  });
+
+  // Topbar titles
+  const pTitle = document.getElementById('pageTitle');
+  if (pTitle && pTitle.textContent === 'Overview' || pTitle && pTitle.textContent === 'கண்ணோட்டம்') {
+    pTitle.textContent = t.pageOverviewTitle;
+  }
+
+  // Dashboard Stats
+  const statCardLabels = document.querySelectorAll('.stat-card-label');
+  if (statCardLabels.length >= 4) {
+    statCardLabels[0].textContent = t.statTotal;
+    statCardLabels[1].textContent = t.statPending;
+    statCardLabels[2].textContent = t.statResolvedDash;
+    statCardLabels[3].textContent = t.statEscalated;
+  }
+
+  // New Complaint Form
+  const stepLabels = document.querySelectorAll('.step-label');
+  if (stepLabels.length >= 3) {
+    stepLabels[0].textContent = t.step1Label;
+    stepLabels[1].textContent = t.step2Label;
+    stepLabels[2].textContent = t.step3Label;
+  }
+
+  const vText = document.getElementById('voiceInputText');
+  if (vText) vText.textContent = t.voiceInputBtn;
+  const vnText = document.getElementById('voiceNoteText');
+  if (vnText) vnText.textContent = t.voiceNoteBtn;
+  const locBtn = document.getElementById('locationBtn');
+  if (locBtn) locBtn.textContent = t.btnDetectGps;
+
+  // Categories
+  const catNames = { Road: t.catRoad, Garbage: t.catGarbage, Water: t.catWater, Electricity: t.catElectricity, Drainage: t.catDrainage, Other: t.catOther };
+  Object.keys(catNames).forEach(k => {
+    const btn = document.getElementById(`cat-${k}`);
+    if (btn) {
+      const span = btn.querySelector('.cat-btn-name');
+      if (span) span.textContent = catNames[k];
+    }
+  });
+
+  // Severities
+  const sevLow = document.getElementById('sev-low');
+  if (sevLow) sevLow.textContent = t.sevLow;
+  const sevMed = document.getElementById('sev-medium');
+  if (sevMed) sevMed.textContent = t.sevMed;
+  const sevHigh = document.getElementById('sev-high');
+  if (sevHigh) sevHigh.textContent = t.sevHigh;
+  const sevCrit = document.getElementById('sev-critical');
+  if (sevCrit) sevCrit.textContent = t.sevCrit;
+
+  // Admin Sidebar & Buttons
+  const adminNavItems = document.querySelectorAll('#view-admin .admin-nav-item');
+  if (adminNavItems.length >= 5) {
+    adminNavItems[0].innerHTML = `📊 ${t.adminMenuOverview}`;
+    adminNavItems[1].innerHTML = `📋 ${t.adminMenuComplaints}`;
+    adminNavItems[2].innerHTML = `🚨 ${t.adminMenuEscalated}`;
+    adminNavItems[3].innerHTML = `✅ ${t.adminMenuResolved}`;
+    adminNavItems[4].innerHTML = `📈 ${t.adminMenuReports}`;
+  }
+
+  // Admin Tables Headers
+  document.querySelectorAll('.complaints-table thead tr').forEach(row => {
+    const ths = row.querySelectorAll('th');
+    if (ths.length >= 7) {
+      ths[0].textContent = t.thId;
+      ths[1].textContent = t.thComplaint;
+      ths[2].textContent = t.thLocation;
+      ths[3].textContent = t.thNavigation;
+      ths[4].textContent = t.thPriority;
+      ths[5].textContent = t.thStatus;
+      ths[6].textContent = t.thSla;
+      if (ths[7]) ths[7].textContent = t.thAction;
+    }
+  });
+
+  if (showNotification) {
+    showToast(lang === 'ta' ? '✅ முழுப் பக்கமும் தமிழுக்கு மாற்றப்பட்டது!' : '✅ Complete portal switched to English!', 'success');
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   UNIFIED DEPARTMENT ADMIN FUNCTIONS
+══════════════════════════════════════════════════════ */
+let currentAdminDept = 'Roads & Highways';
+
+const ADMIN_MOCK_DATA = [
+  { id:'CMP-2024-001', title:'Large pothole on NH-47 near market', category:'Road', dept:'Roads & Highways', constituency:'Erode East', priority:'critical', status:'progress', submitted:'2024-08-01', sla:'2024-08-06', escalated:true, lat:11.3410, lng:77.7172, address:'NH-47, Market Junction, Erode East' },
+  { id:'CMP-2024-002', title:'Street light not working for 2 weeks', category:'Electricity', dept:'Tamil Nadu Electricity Board', constituency:'Erode West', priority:'medium', status:'submitted', submitted:'2024-08-03', sla:'2024-08-13', escalated:false, lat:11.3395, lng:77.7165, address:'Gandhi Nagar 4th St, Erode West' },
+  { id:'CMP-2024-003', title:'Water supply disruption in colony', category:'Water', dept:'Water Supply', constituency:'Bhavani', priority:'high', status:'progress', submitted:'2024-08-02', sla:'2024-08-07', escalated:false, lat:11.3430, lng:77.7145, address:'Kaveri Street, Bhavani' },
+  { id:'CMP-2024-004', title:'Garbage not collected for a week', category:'Garbage', dept:'Sanitation', constituency:'Erode East', priority:'medium', status:'submitted', submitted:'2024-08-04', sla:'2024-08-14', escalated:false, lat:11.3380, lng:77.7195, address:'VOC Park Road, Erode East' },
+  { id:'CMP-2024-005', title:'Blocked drainage causing waterlogging', category:'Drainage', dept:'Water Supply', constituency:'Gobichettipalayam', priority:'critical', status:'submitted', submitted:'2024-08-05', sla:'2024-08-07', escalated:true, lat:11.3445, lng:77.7210, address:'Bus Stand Road, Gobichettipalayam' },
+  { id:'CMP-2024-006', title:'Damaged footpath near school', category:'Road', dept:'Roads & Highways', constituency:'Perundurai', priority:'medium', status:'resolved', submitted:'2024-07-25', sla:'2024-08-04', escalated:false, resolvedDate:'2024-08-03', lat:11.3360, lng:77.7150, address:'Govt Higher Sec School, Perundurai' },
+  { id:'CMP-2024-007', title:'Electrical wire hanging dangerously low', category:'Electricity', dept:'Tamil Nadu Electricity Board', constituency:'Erode East', priority:'critical', status:'review', submitted:'2024-08-06', sla:'2024-08-08', escalated:true, lat:11.3420, lng:77.7130, address:'Mettur Road, Erode East' },
+  { id:'CMP-2024-008', title:'Main pipeline burst & leaking drinking water', category:'Water', dept:'Water Supply', constituency:'Erode West', priority:'critical', status:'submitted', submitted:'2024-08-06', sla:'2024-08-08', escalated:false, lat:11.3400, lng:77.7220, address:'Brough Road, Erode West' },
+  { id:'CMP-2024-009', title:'Open garbage dumping near residential area', category:'Garbage', dept:'Sanitation', constituency:'Bhavani', priority:'high', status:'progress', submitted:'2024-08-01', sla:'2024-08-06', escalated:true, lat:11.3460, lng:77.7175, address:'Kaveri River Bank Rd, Bhavani' },
+  { id:'CMP-2024-010', title:'Road collapse after heavy rainfall', category:'Road', dept:'Roads & Highways', constituency:'Erode East', priority:'critical', status:'submitted', submitted:'2024-08-07', sla:'2024-08-09', escalated:false, lat:11.3370, lng:77.7140, address:'Perundurai Rd Junction, Erode' },
+];
+
+let unifiedAdminData = [...ADMIN_MOCK_DATA];
+
+function changeDeptFilter(dept) {
+  currentAdminDept = dept === 'ALL' ? 'Collectorate' : dept;
+  const badge1 = document.getElementById('unifiedAdminDeptName');
+  if (badge1) badge1.textContent = dept === 'ALL' ? 'All Departments (Collectorate)' : dept;
+  const badge2 = document.getElementById('adminDeptLabel');
+  if (badge2) badge2.textContent = dept === 'ALL' ? 'All Departments' : dept;
+  const badge3 = document.getElementById('topbarDeptBadge');
+  if (badge3) badge3.textContent = dept === 'ALL' ? 'All Departments (Collectorate)' : dept;
+  renderAdminOverview();
+  renderAdminTable();
+  showToast(`🔄 Switched view to ${dept === 'ALL' ? 'All Departments' : dept}`, 'info');
+}
+
+function adminNav(page, btn) {
+  document.querySelectorAll('#view-admin .admin-nav-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#view-admin .admin-page').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const target = document.getElementById(`admin-page-${page}`);
+  if (target) target.classList.add('active');
+
+  const titles = { overview:'Overview', complaints:'Department Complaints', escalated:'Escalated Complaints', resolved:'Resolved Tasks', reports:'Analytics & SLA' };
+  const titleEl = document.getElementById('adminPageTitle');
+  if (titleEl) titleEl.textContent = titles[page] || page;
+
+  if (page === 'complaints') renderAdminTable();
+  if (page === 'escalated')  renderEscalatedTable();
+  if (page === 'resolved')   renderResolvedTable();
+  if (page === 'reports')    renderReports();
+  if (page === 'overview')   renderAdminOverview();
+}
+
+function getDeptComplaints() {
+  if (currentAdminDept === 'Collectorate' || currentAdminDept === 'ALL') {
+    return unifiedAdminData;
+  }
+  return unifiedAdminData.filter(c => c.dept.toLowerCase().includes(currentAdminDept.toLowerCase()) || (c.category.toLowerCase() === 'road' && currentAdminDept.includes('Roads')));
+}
+
+function isComplaintOverdue(c) {
+  if (c.status === 'resolved') return false;
+  return c.sla && new Date(c.sla) < new Date();
+}
+
+function daysDifference(d1, d2) {
+  return Math.round((new Date(d1) - new Date(d2)) / 86400000);
+}
+
+function renderAdminOverview() {
+  const deptList = getDeptComplaints();
+  const escalated = deptList.filter(c => c.escalated || isComplaintOverdue(c));
+  const resolved  = deptList.filter(c => c.status === 'resolved');
+  const pending   = deptList.filter(c => c.status !== 'resolved');
+
+  const statsRow = document.getElementById('adminStatsRow');
+  if (statsRow) {
+    const stats = [
+      { label:'Assigned Complaints', value: deptList.length, color:'var(--blue)' },
+      { label:'Pending Resolution', value: pending.length, color:'var(--warning)' },
+      { label:'Escalated (Overdue)', value: escalated.length, color:'var(--danger)' },
+      { label:'Resolved by Field Staff', value: resolved.length, color:'var(--success)' },
+    ];
+    statsRow.innerHTML = stats.map(s => `
+      <div class="admin-stat-card">
+        <div class="value" style="color:${s.color}">${s.value}</div>
+        <div class="label">${s.label}</div>
+      </div>
+    `).join('');
+  }
+
+  // Escalation alert list
+  const escItems = deptList.filter(c => c.escalated || isComplaintOverdue(c));
+  const escList = document.getElementById('escalationList');
+  const escPanel = document.getElementById('escalationPanel');
+
+  if (escPanel && escList) {
+    if (escItems.length === 0) {
+      escPanel.style.display = 'none';
+    } else {
+      escPanel.style.display = 'block';
+      escList.innerHTML = escItems.map(c => `
+        <div class="esc-item">
+          <div class="esc-item-left">
+            <strong>${c.id} — ${c.title}</strong>
+            <span>📍 ${c.address} (${c.constituency}) · SLA deadline missed</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">
+              🚗 Travel Direction
+            </a>
+            <button class="btn-resolve" onclick="quickResolve('${c.id}')">Mark Resolved</button>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Overview table
+  const tableBody = document.getElementById('overviewTableBody');
+  if (tableBody) {
+    const recent = [...deptList].sort((a,b) => b.submitted.localeCompare(a.submitted)).slice(0, 6);
+    tableBody.innerHTML = recent.map(c => `
+      <tr>
+        <td><code style="font-size:11px;color:var(--blue);font-weight:700">${c.id}</code></td>
+        <td>
+          <div style="font-weight:600;color:var(--text-primary);font-size:13px">${c.title}</div>
+          ${c.escalated || isComplaintOverdue(c) ? '<span class="escalation-tag" style="margin-top:2px">🚨 ESCALATED</span>' : ''}
+        </td>
+        <td>
+          <div style="font-size:12px;color:var(--text-secondary)">${c.address}</div>
+          <div style="font-size:10px;color:var(--text-muted);font-family:monospace">${c.lat.toFixed(4)}°N, ${c.lng.toFixed(4)}°E</div>
+        </td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps" title="Open Google Maps Driving Directions">
+              🚗 Navigate
+            </a>
+            <button class="btn-map-pin" onclick="openLocationModal('${c.id}', '${(c.title||'').replace(/'/g,"\\'")}', '${(c.address||'').replace(/'/g,"\\'")}', ${c.lat}, ${c.lng})">
+              📍 Pin
+            </button>
+          </div>
+        </td>
+        <td><span class="priority-badge priority-${c.priority}">${c.priority.toUpperCase()}</span></td>
+        <td><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></td>
+        <td style="font-size:12px;${isComplaintOverdue(c)?'color:var(--danger);font-weight:600':'color:var(--text-muted)'}">
+          ${c.sla}${isComplaintOverdue(c)?' ⚠️':''}
+        </td>
+        <td>
+          <div style="display:flex;gap:5px;align-items:center">
+            <select class="status-select" id="sel-${c.id}">
+              <option value="submitted" ${c.status==='submitted'?'selected':''}>Submitted</option>
+              <option value="review"    ${c.status==='review'?'selected':''}>Under Review</option>
+              <option value="progress"  ${c.status==='progress'?'selected':''}>In Progress</option>
+              <option value="resolved"  ${c.status==='resolved'?'selected':''}>Resolved</option>
+            </select>
+            <button class="btn-update" onclick="updateAdminStatus('${c.id}')">Save</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+}
+
+function renderAdminTable() {
+  const tbody = document.getElementById('adminComplaintsTable')?.querySelector('tbody') || document.getElementById('adminTableBody');
+  if (!tbody) return;
+  const base = getDeptComplaints();
+  const q    = (document.getElementById('adminSearch')?.value || '').toLowerCase();
+  const st   = document.getElementById('filterStatus')?.value || '';
+  const pr   = document.getElementById('filterPriority')?.value || '';
+
+  const filtered = base.filter(c => {
+    if (q && !c.id.toLowerCase().includes(q) && !c.title.toLowerCase().includes(q) && !c.address.toLowerCase().includes(q)) return false;
+    if (st && c.status !== st) return false;
+    if (pr && c.priority !== pr) return false;
+    return true;
+  });
+
+  const countEl = document.getElementById('adminTableCount');
+  if (countEl) countEl.textContent = `${filtered.length} assigned records`;
+
+  tbody.innerHTML = filtered.map(c => `
+    <tr>
+      <td><code style="font-size:11px;color:var(--blue);font-weight:700">${c.id}</code></td>
+      <td>
+        <div style="font-weight:600;color:var(--text-primary);font-size:13px">${c.title}</div>
+        ${c.escalated || isComplaintOverdue(c) ? '<span class="escalation-tag" style="margin-top:2px">🚨 ESCALATED</span>' : ''}
+      </td>
+      <td><span style="font-size:12px;font-weight:500">${c.dept}</span></td>
+      <td>
+        <div style="font-size:12px">${c.address}</div>
+        <div style="font-size:10px;color:var(--text-muted);font-family:monospace">${c.lat.toFixed(4)}°N, ${c.lng.toFixed(4)}°E</div>
+      </td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">
+            🚗 Navigate
+          </a>
+          <button class="btn-map-pin" onclick="openLocationModal('${c.id}', '${(c.title||'').replace(/'/g,"\\'")}', '${(c.address||'').replace(/'/g,"\\'")}', ${c.lat}, ${c.lng})">
+            📍 Pin
+          </button>
+        </div>
+      </td>
+      <td><span class="priority-badge priority-${c.priority}">${c.priority.toUpperCase()}</span></td>
+      <td><span class="status-badge status-${c.status}">${c.status.toUpperCase()}</span></td>
+      <td style="font-size:12px;${isComplaintOverdue(c)?'color:var(--danger);font-weight:600':'color:var(--text-muted)'}">${c.sla}${isComplaintOverdue(c)?' ⚠️':''}</td>
+      <td>
+        <div style="display:flex;gap:5px;align-items:center">
+          <select class="status-select" id="sel-all-${c.id}">
+            <option value="submitted" ${c.status==='submitted'?'selected':''}>Submitted</option>
+            <option value="review"    ${c.status==='review'?'selected':''}>Under Review</option>
+            <option value="progress"  ${c.status==='progress'?'selected':''}>In Progress</option>
+            <option value="resolved"  ${c.status==='resolved'?'selected':''}>Resolved</option>
+          </select>
+          <button class="btn-update" onclick="updateAdminStatus('${c.id}', 'sel-all-')">Save</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterAdminTable() { renderAdminTable(); }
+
+function renderEscalatedTable() {
+  const tbody = document.getElementById('escalatedTable')?.querySelector('tbody') || document.getElementById('escalatedTableBody');
+  if (!tbody) return;
+  const base = getDeptComplaints();
+  const escItems = base.filter(c => c.escalated || isComplaintOverdue(c));
+  tbody.innerHTML = escItems.length === 0
+    ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted)">✅ No overdue complaints for this department</td></tr>'
+    : escItems.map(c => `
+        <tr>
+          <td><code style="font-size:11px;color:var(--danger);font-weight:700">${c.id}</code></td>
+          <td><div style="font-weight:600;color:var(--text-primary)">${c.title}</div><div style="font-size:11px;color:var(--text-muted)">${c.dept}</div></td>
+          <td><div style="font-size:12px">${c.address}</div><div style="font-size:10px;color:var(--text-muted)">${c.constituency}</div></td>
+          <td><a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" class="btn-nav-gmaps">🚗 Travel Direction</a></td>
+          <td><span class="priority-badge priority-${c.priority}">${c.priority.toUpperCase()}</span></td>
+          <td style="color:var(--danger);font-weight:600;font-size:12px">${isComplaintOverdue(c) ? `${Math.abs(daysDifference(new Date(), c.sla))} days overdue` : 'Manually escalated'}</td>
+          <td><button class="btn-resolve" onclick="quickResolve('${c.id}')">Mark Resolved</button></td>
+        </tr>
+      `).join('');
+}
+
+function renderResolvedTable() {
+  const tbody = document.getElementById('resolvedTable')?.querySelector('tbody') || document.getElementById('resolvedTableBody');
+  if (!tbody) return;
+  const base = getDeptComplaints();
+  const resolved = base.filter(c => c.status === 'resolved');
+  tbody.innerHTML = resolved.length === 0
+    ? '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text-muted)">No resolved tasks yet</td></tr>'
+    : resolved.map(c => {
+        const days = c.resolvedDate ? daysDifference(c.resolvedDate, c.submitted) : '—';
+        return `
+          <tr>
+            <td><code style="font-size:11px;color:var(--success);font-weight:700">${c.id}</code></td>
+            <td style="font-weight:600;color:var(--text-primary)">${c.title}</td>
+            <td style="font-size:12px">${c.dept}</td>
+            <td style="font-size:12px">${c.address}</td>
+            <td><span class="priority-badge priority-${c.priority}">${c.priority.toUpperCase()}</span></td>
+            <td style="font-size:12px;color:var(--text-muted)">${c.submitted}</td>
+            <td style="font-size:12px;color:var(--success);font-weight:600">${c.resolvedDate || '—'}</td>
+            <td style="font-size:12px">${days} days</td>
+          </tr>
+        `;
+      }).join('');
+}
+
+function renderReports() {
+  const all = getDeptComplaints();
+  const byStatus = {
+    submitted: all.filter(c=>c.status==='submitted').length,
+    review:    all.filter(c=>c.status==='review').length,
+    progress:  all.filter(c=>c.status==='progress').length,
+    resolved:  all.filter(c=>c.status==='resolved').length,
+  };
+  const resolved = all.filter(c=>c.status==='resolved');
+  const avgDays = resolved.length
+    ? Math.round(resolved.reduce((acc,c) => acc + (c.resolvedDate ? daysDifference(c.resolvedDate, c.submitted) : 0), 0) / resolved.length)
+    : 0;
+
+  const statsRow = document.getElementById('reportStatsRow');
+  if (statsRow) {
+    statsRow.innerHTML = `
+      <div class="admin-stat-card"><div class="value" style="color:var(--blue)">${all.length}</div><div class="label">Total Department Tasks</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--success)">${resolved.length}</div><div class="label">Completed / Resolved</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--danger)">${all.filter(c=>c.escalated||isComplaintOverdue(c)).length}</div><div class="label">Escalated Past SLA</div></div>
+      <div class="admin-stat-card"><div class="value" style="color:var(--warning)">${avgDays}</div><div class="label">Avg. Resolution Days</div></div>
+    `;
+  }
+
+  const breakdown = [
+    { label:'Submitted (New)', val: byStatus.submitted, total: all.length, color:'#2563eb' },
+    { label:'Under Review',    val: byStatus.review,    total: all.length, color:'#d97706' },
+    { label:'In Progress',     val: byStatus.progress,  total: all.length, color:'#0284c7' },
+    { label:'Resolved',        val: byStatus.resolved,  total: all.length, color:'#16a34a' },
+  ];
+
+  const bdContainer = document.getElementById('reportBreakdown');
+  if (bdContainer) {
+    bdContainer.innerHTML = breakdown.map(b => `
+      <div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px">
+          <span style="color:var(--text-secondary)">${b.label}</span>
+          <span style="font-weight:600">${b.val} / ${b.total}</span>
+        </div>
+        <div style="height:7px;background:var(--bg-panel);border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${b.total?Math.round(b.val/b.total*100):0}%;background:${b.color};border-radius:4px;transition:width 0.5s ease"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+}
+
+function updateAdminStatus(id, prefix = 'sel-') {
+  const sel = document.getElementById(`${prefix}${id}`) || document.getElementById(`sel-${id}`);
+  if (!sel) return;
+  const newStatus = sel.value;
+  const idx = unifiedAdminData.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  unifiedAdminData[idx].status = newStatus;
+  if (newStatus === 'resolved') {
+    unifiedAdminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
+    unifiedAdminData[idx].escalated = false;
+  }
+  showToast(`✅ ${id} status updated to "${newStatus.toUpperCase()}"`, 'success');
+  renderAdminOverview();
+}
+
+function quickResolve(id) {
+  const idx = unifiedAdminData.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  unifiedAdminData[idx].status = 'resolved';
+  unifiedAdminData[idx].resolvedDate = new Date().toISOString().split('T')[0];
+  unifiedAdminData[idx].escalated = false;
+  showToast(`✅ ${id} marked as Resolved & Closed.`, 'success');
+  renderAdminOverview();
+}
+
+function downloadReport() {
+  const headers = ['ID','Title','Category','Department','Address','Latitude','Longitude','Constituency','Priority','Status','Submitted','SLA','ResolvedDate'];
+  const rows = getDeptComplaints().map(c => [c.id,`"${c.title}"`,c.category,`"${c.dept}"`,`"${c.address}"`,c.lat,c.lng,c.constituency,c.priority,c.status,c.submitted,c.sla,c.resolvedDate||''].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `${currentAdminDept.replace(/\s+/g,'_')}_Complaints_Report.csv`; a.click();
+  showToast('📥 Report CSV downloaded', 'success');
+}
+
+/* ── Modal Leaflet Map ── */
+let modalMap = null;
+let modalMarker = null;
+
+function openLocationModal(id, title, address, lat, lng) {
+  const titleEl = document.getElementById('modalMapTitle');
+  if (titleEl) titleEl.textContent = `📍 ${id} — ${title}`;
+  const addrEl = document.getElementById('modalMapAddress');
+  if (addrEl) addrEl.textContent = `Address: ${address}`;
+  const coordsEl = document.getElementById('modalMapCoords');
+  if (coordsEl) coordsEl.textContent = `GPS: ${lat.toFixed(5)}°N, ${lng.toFixed(5)}°E`;
+  const gmapsBtn = document.getElementById('modalGmapsBtn');
+  if (gmapsBtn) gmapsBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+  const modal = document.getElementById('locationModal');
+  if (modal) modal.classList.add('show');
+
+  setTimeout(() => {
+    const mapEl = document.getElementById('modalLeafletMap');
+    if (!mapEl || typeof L === 'undefined') return;
+    if (!modalMap) {
+      modalMap = L.map('modalLeafletMap').setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(modalMap);
+      modalMarker = L.marker([lat, lng]).addTo(modalMap);
+    } else {
+      modalMap.setView([lat, lng], 15);
+      modalMarker.setLatLng([lat, lng]);
+      modalMap.invalidateSize();
+    }
+  }, 150);
+}
+
+function closeMapModal() {
+  const modal = document.getElementById('locationModal');
+  if (modal) modal.classList.remove('show');
+}
+
+
+

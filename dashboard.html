@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="dashboard-body">
 
@@ -83,6 +85,11 @@
         <div class="topbar-search">
           <span>🔍</span>
           <input type="text" id="globalSearch" placeholder="Search complaints..." oninput="searchComplaints(this.value)" />
+        </div>
+        <!-- Language Toggle -->
+        <div style="display:flex;gap:4px;margin-right:6px">
+          <button class="lang-btn active" id="dashLangEN" onclick="setPortalLang('en')">EN</button>
+          <button class="lang-btn" id="dashLangTA" onclick="setPortalLang('ta')">தமிழ்</button>
         </div>
         <div class="topbar-icon-btn" onclick="navigateTo('notifications')" title="Notifications">
           🔔
@@ -352,6 +359,26 @@
                 </div>
                 <span id="descQualLabel" style="color:var(--text-muted);min-width:60px;text-align:right"></span>
               </div>
+
+              <!-- Voice Input & Voice Note Options -->
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:8px;padding:8px 12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm)">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                  <button type="button" id="btnVoiceInput" class="btn-secondary" style="padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px" onclick="toggleSpeechRecognition()">
+                    <span id="voiceMicIcon">🎙️</span> <span id="voiceInputText">Speak (Voice-to-Text)</span>
+                  </button>
+                  <button type="button" id="btnVoiceNote" class="btn-secondary" style="padding:6px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px" onclick="toggleAudioVoiceNote()">
+                    <span id="noteRecIcon">🔴</span> <span id="voiceNoteText">Record Voice Note</span>
+                  </button>
+                </div>
+                <span id="voiceStatus" style="font-size:11px;color:var(--text-muted);font-weight:500"></span>
+              </div>
+
+              <!-- Voice Note Player Playback (if recorded) -->
+              <div id="voiceNotePlayerContainer" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-white);border:1px solid #bbf7d0;border-radius:var(--radius-sm);align-items:center;gap:10px">
+                <span style="font-size:12px;font-weight:700;color:var(--success)">🎵 Voice Note Attached:</span>
+                <audio id="voiceNoteAudio" controls style="height:32px;flex:1"></audio>
+                <button type="button" onclick="deleteVoiceNote()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;padding:2px 6px" title="Delete voice note">🗑️</button>
+              </div>
             </div>
 
             <!-- Severity quick-select -->
@@ -452,6 +479,16 @@
                   </div>
                   <span style="background:hsla(145,65%,45%,.12);color:var(--success);font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0;white-space:nowrap">GPS VERIFIED</span>
                 </div>
+
+                <!-- Interactive Precise Map Pin Picker -->
+                <div id="step2MapContainer" style="margin-top:12px">
+                  <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:6px">🗺️ Precise Issue Location Map (Drag marker to adjust exact spot):</div>
+                  <div id="step2LeafletMap" style="height:200px;border-radius:var(--radius-sm);border:1px solid var(--border);position:relative;z-index:1"></div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                    <span style="font-size:11px;color:var(--text-muted)">💡 Field officers will use these coordinates for driving navigation.</span>
+                    <a id="step2GmapsPreview" href="#" target="_blank" class="btn-nav-gmaps" style="font-size:11px;padding:3px 8px">🚗 Test Google Maps Link</a>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -549,43 +586,30 @@
         <h2 class="section-title">Public Complaints Map — Erode District</h2>
         <div class="section-actions">
           <button class="filter-btn active" onclick="filterMapBy('all', this)">All</button>
-          <button class="filter-btn" onclick="filterMapBy('critical', this)">Critical</button>
-          <button class="filter-btn" onclick="filterMapBy('road', this)">🛣️ Roads</button>
-          <button class="filter-btn" onclick="filterMapBy('water', this)">💧 Water</button>
+          <button class="filter-btn" onclick="filterMapBy('critical', this)">🔴 Critical</button>
+          <button class="filter-btn" onclick="filterMapBy('Road', this)">🛣️ Roads</button>
+          <button class="filter-btn" onclick="filterMapBy('Water', this)">💧 Water</button>
+          <button class="filter-btn" onclick="filterMapBy('Garbage', this)">🗑️ Garbage</button>
+          <button class="filter-btn" onclick="filterMapBy('Electricity', this)">⚡ Electricity</button>
         </div>
       </div>
 
-      <div class="map-container-full" id="mapContainer">
-        <div class="map-dots"></div>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:5">
-          <div style="font-size:40px">🗺️</div>
-          <div style="font-size:14px;font-weight:600;color:var(--text-secondary)">Interactive Map — Erode District</div>
-          <div style="font-size:12px;color:var(--text-muted)">OpenStreetMap integration via Leaflet.js</div>
-          <button class="btn-primary" style="width:auto;padding:10px 24px;margin-top:8px" onclick="loadMap()">
-            🗺️ Load Live Map
-          </button>
-        </div>
-        <!-- Simulated Map Pins -->
-        <div id="mapPins"></div>
-        <div class="map-overlay-controls">
-          <div class="map-ctrl-btn" title="Zoom In">+</div>
-          <div class="map-ctrl-btn" title="Zoom Out">−</div>
-          <div class="map-ctrl-btn" title="My Location">📍</div>
-        </div>
-      </div>
+      <!-- Leaflet Map -->
+      <div id="leafletMap" style="height:460px;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;z-index:1"></div>
 
-      <div class="map-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:var(--primary)"></div> Submitted</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div> Under Review</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--info)"></div> In Progress</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div> Resolved</div>
-        <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div> Escalated</div>
+      <div class="map-legend" style="margin-top:10px">
+        <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div> Submitted</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div> Under Review</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#0284c7"></div> In Progress</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div> Resolved</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div> Escalated</div>
       </div>
 
       <!-- Nearby Complaints -->
       <div style="margin-top:20px">
         <div class="section-header">
           <h2 class="section-title">Complaints in Your Area</h2>
+          <span id="nearbyCount" style="font-size:12px;color:var(--text-muted)"></span>
         </div>
         <div class="complaints-list" id="nearbyComplaintsList"></div>
       </div>

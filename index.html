@@ -3,17 +3,167 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Citizen Complaint Portal — Erode District</title>
-  <meta name="description" content="Official Citizen Complaint Portal for Erode District, Tamil Nadu. Report civic issues and track resolution status." />
+  <title>Citizen &amp; Official Complaint Portal — Erode District</title>
+  <meta name="description" content="Official Unified Civic Complaint Portal for Erode District, Tamil Nadu. AI Prioritized, GPS Verified, Trackable Resolution." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-</head>
-<body class="login-body">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    /* ── Single-Host Navigation & Layouts ── */
+    .master-view { display: none; width: 100%; min-height: 100vh; }
+    .master-view.active { display: block; animation: fadeIn 0.2s ease; }
 
-  <!-- Animated Background Particles -->
-  <div class="particles" id="particles"></div>
+    .auth-tab-btn {
+      flex: 1; padding: 12px 8px; font-size: 12px; font-weight: 600;
+      background: var(--bg-panel); border: none; border-bottom: 2px solid transparent;
+      color: var(--text-secondary); cursor: pointer; font-family: var(--font);
+      transition: background var(--transition), color var(--transition);
+      text-align: center;
+    }
+    .auth-tab-btn.active {
+      color: var(--blue); background: var(--bg-white); border-bottom-color: var(--blue);
+    }
+    .auth-tab-btn.admin-tab.active {
+      color: var(--danger); border-bottom-color: var(--danger);
+    }
+
+    /* Admin specific in unified */
+    .admin-sidebar {
+      width: 230px; background: #0f172a; display: flex; flex-direction: column;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 60;
+    }
+    .admin-logo {
+      padding: 0 16px; height: 54px; display: flex; align-items: center; gap: 10px;
+      background: #020617; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .admin-logo-badge {
+      width: 32px; height: 32px; background: #dc2626; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .admin-nav-item {
+      display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+      color: #94a3b8; font-size: 13px; font-weight: 500; cursor: pointer;
+      border: none; background: none; width: 100%; text-align: left;
+      font-family: var(--font); border-left: 3px solid transparent;
+      transition: background var(--transition), color var(--transition);
+    }
+    .admin-nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+    .admin-nav-item.active { background: rgba(220,38,38,0.12); color: #fca5a5; border-left-color: #dc2626; }
+    .admin-main { margin-left: 230px; flex: 1; background: var(--bg); min-height: 100vh; display: flex; flex-direction: column; }
+    .admin-topbar {
+      position: sticky; top: 0; z-index: 40; background: var(--bg-white);
+      border-bottom: 1px solid var(--border); padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .admin-badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px;
+      font-size: 11px; font-weight: 700; color: var(--success);
+    }
+    .admin-page { display: none; padding: 20px 24px; }
+    .admin-page.active { display: block; }
+    .admin-stats {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;
+    }
+    .admin-stat-card {
+      background: var(--bg-white); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 4px;
+    }
+    .admin-stat-card .value { font-size: 26px; font-weight: 800; font-family: var(--font); }
+    .admin-stat-card .label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    .escalation-panel {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: var(--radius); padding: 16px; margin-bottom: 16px;
+    }
+    .esc-list { display: flex; flex-direction: column; gap: 10px; }
+    .esc-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #fff; padding: 10px 14px; border-radius: var(--radius-sm);
+      border: 1px solid #fee2e2; gap: 12px;
+    }
+    .esc-item strong { font-size: 12px; color: var(--text-primary); }
+    .esc-item span { font-size: 11px; color: #ef4444; }
+    .btn-resolve {
+      padding: 5px 12px; background: #16a34a; color: #fff; border: none;
+      border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer;
+      font-family: var(--font); white-space: nowrap;
+    }
+    .btn-resolve:hover { background: #15803d; }
+
+    .status-select {
+      padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px;
+      font-size: 12px; background: var(--bg-white); font-family: var(--font);
+      outline: none; color: var(--text-primary);
+    }
+
+    .complaints-table {
+      width: 100%; border-collapse: collapse; background: var(--bg-white);
+      border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+    }
+    .complaints-table thead { background: var(--bg-panel); border-bottom: 1px solid var(--border); }
+    .complaints-table th {
+      padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); white-space: nowrap;
+    }
+    .complaints-table td { padding: 11px 12px; font-size: 12.5px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-secondary); }
+    .complaints-table tr:last-child td { border-bottom: none; }
+    .complaints-table tr:hover td { background: rgba(0,0,0,0.015); }
+
+    .btn-nav-gmaps {
+      display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;
+      background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px;
+      color: #1d4ed8; font-size: 11px; font-weight: 600; text-decoration: none;
+      transition: background var(--transition); white-space: nowrap;
+    }
+    .btn-nav-gmaps:hover { background: #2563eb; color: #fff; text-decoration: none; }
+    .btn-map-pin {
+      display: inline-flex; align-items: center; gap: 3px; padding: 4px 8px;
+      background: #f8fafc; border: 1px solid var(--border); border-radius: 4px;
+      color: var(--text-secondary); font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .btn-map-pin:hover { background: #e2e8f0; }
+
+    .escalation-tag {
+      display: inline-flex; align-items: center; gap: 3px; background: #fef2f2;
+      color: #dc2626; border: 1px solid #fecaca; font-size: 10px; font-weight: 700;
+      padding: 1px 6px; border-radius: 3px;
+    }
+    .dept-chip {
+      padding: 4px 8px; border-radius: 4px; background: #1e3a5f;
+      border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; font-size: 11px;
+      font-weight: 600; cursor: pointer; font-family: var(--font);
+    }
+    .dept-chip.active { background: #1d4ed8; color: #fff; border-color: #3b82f6; }
+    .btn-update {
+      padding: 4px 10px; background: var(--blue); color: #fff; border: none;
+      border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font);
+    }
+    .btn-update:hover { background: var(--blue-hover); }
+
+    /* Modal for Inspection Map */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: none; align-items: center; justify-content: center;
+      z-index: 999; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: var(--radius-lg);
+      width: 100%; max-width: 600px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .modal-header {
+      padding: 14px 20px; background: var(--navy); color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+  </style>
+</head>
+<body>
 
   <!-- Top Header Bar -->
   <header class="top-header">
@@ -25,239 +175,973 @@
       </div>
     </div>
     <div class="header-right">
-      <span class="lang-btn active">EN</span>
-      <span class="lang-btn">தமிழ்</span>
+      <button type="button" class="lang-btn active" id="masterLangEN" onclick="setPortalLang('en')">EN</button>
+      <button type="button" class="lang-btn" id="masterLangTA" onclick="setPortalLang('ta')">தமிழ்</button>
     </div>
   </header>
 
-  <!-- Main Login Container -->
-  <main class="login-main">
-    <!-- Left Panel — Hero -->
-    <section class="login-hero">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        AI-Powered Civic Platform
-      </div>
-      <h1 class="hero-title">
-        <span class="title-line">Your Voice,</span>
-        <span class="title-line gradient-text">Our Action.</span>
-      </h1>
-      <p class="hero-desc">
-        Report civic issues — potholes, water leaks, garbage, electricity — and track resolution in real-time. Powered by AI prioritization and automated escalation.
-      </p>
+  <!-- ══════════════════════════════════════════════════
+       MASTER VIEW 1: AUTH SCREEN (CITIZEN & ADMIN LOGIN)
+  ══════════════════════════════════════════════════ -->
+  <div id="view-auth" class="master-view active" style="padding-top:52px">
+    <main class="login-main" style="padding-top:0;min-height:calc(100vh - 52px)">
+      <!-- Left Panel — Hero -->
+      <section class="login-hero">
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          AI-Powered Civic Platform
+        </div>
+        <h1 class="hero-title">
+          <span class="title-line">Your Voice,</span>
+          <span class="title-line gradient-text">Our Action.</span>
+        </h1>
+        <p class="hero-desc">
+          Report civic issues — potholes, water leaks, garbage, electricity — and track resolution in real-time with GPS verification and automated SLA escalation.
+        </p>
 
-      <div class="feature-cards">
-        <div class="feat-card">
-          <span class="feat-icon">📍</span>
-          <div>
-            <strong>Live Location</strong>
-            <p>GPS-tagged complaints</p>
-          </div>
-        </div>
-        <div class="feat-card">
-          <span class="feat-icon">🤖</span>
-          <div>
-            <strong>AI Prioritization</strong>
-            <p>Smart routing & SLA</p>
-          </div>
-        </div>
-        <div class="feat-card">
-          <span class="feat-icon">📊</span>
-          <div>
-            <strong>Live Tracking</strong>
-            <p>4-stage status updates</p>
-          </div>
-        </div>
-        <div class="feat-card">
-          <span class="feat-icon">⚡</span>
-          <div>
-            <strong>Auto Escalation</strong>
-            <p>Deadline-based alerts</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-row">
-        <div class="stat">
-          <span class="stat-num">2,847</span>
-          <span class="stat-label">Resolved</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat-num">94%</span>
-          <span class="stat-label">Resolution Rate</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat">
-          <span class="stat-num">3.2d</span>
-          <span class="stat-label">Avg. Response</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Right Panel — Auth Form -->
-    <section class="login-card-wrap">
-      <div class="login-card" id="loginCard">
-        <!-- Tab Switcher -->
-        <div class="auth-tabs">
-          <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Sign In</button>
-          <button class="tab-btn" id="tabSignup" onclick="switchTab('signup')">Register</button>
-          <div class="tab-indicator" id="tabIndicator"></div>
-        </div>
-
-        <!-- LOGIN FORM -->
-        <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
-          <div class="form-header">
-            <h2>Welcome Back</h2>
-            <p>Sign in to manage your complaints</p>
-          </div>
-
-          <div class="input-group">
-            <label for="loginEmail">Email or Phone</label>
-            <div class="input-wrap">
-              <span class="input-icon">📧</span>
-              <input type="text" id="loginEmail" placeholder="Enter email or phone" required />
+        <div class="feature-cards">
+          <div class="feat-card">
+            <span class="feat-icon">📍</span>
+            <div>
+              <strong>Live GPS &amp; Camera</strong>
+              <p>Verified incident reporting</p>
             </div>
           </div>
-
-          <div class="input-group">
-            <label for="loginPass">Password</label>
-            <div class="input-wrap">
-              <span class="input-icon">🔒</span>
-              <input type="password" id="loginPass" placeholder="Enter password" required />
-              <button type="button" class="toggle-pass" onclick="togglePass('loginPass', this)">👁</button>
+          <div class="feat-card">
+            <span class="feat-icon">🤖</span>
+            <div>
+              <strong>AI Priority Engine</strong>
+              <p>Smart routing &amp; SLA</p>
             </div>
           </div>
+          <div class="feat-card">
+            <span class="feat-icon">🚗</span>
+            <div>
+              <strong>Field Navigation</strong>
+              <p>Direct maps for repair staff</p>
+            </div>
+          </div>
+          <div class="feat-card">
+            <span class="feat-icon">⚡</span>
+            <div>
+              <strong>Auto Escalation</strong>
+              <p>Deadline-based alerts</p>
+            </div>
+          </div>
+        </div>
 
-          <div class="form-row">
-            <label class="checkbox-wrap">
-              <input type="checkbox" id="rememberMe" />
-              <span class="checkmark"></span>
-              Remember me
-            </label>
-            <a href="#" class="forgot-link">Forgot password?</a>
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-num">2,847</span>
+            <span class="stat-label">Resolved</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-num">94%</span>
+            <span class="stat-label">Resolution Rate</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-num">3.2d</span>
+            <span class="stat-label">Avg. Response</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel — Unified Auth Card with 3 Tabs -->
+      <section class="login-card-wrap">
+        <div class="login-card" id="loginCard">
+          
+          <!-- 3-Way Tabs -->
+          <div class="auth-tabs" style="border-radius:var(--radius-lg) var(--radius-lg) 0 0">
+            <button type="button" class="auth-tab-btn active" id="tabBtnCitizen" onclick="switchAuthTab('citizen')">
+              👤 Citizen Login
+            </button>
+            <button type="button" class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">
+              📝 Register
+            </button>
+            <button type="button" class="auth-tab-btn admin-tab" id="tabBtnAdmin" onclick="switchAuthTab('admin')">
+              🏛️ Official Login
+            </button>
           </div>
 
-          <button type="submit" class="btn-primary" id="loginBtn">
-            <span class="btn-text">Sign In</span>
-            <span class="btn-arrow">→</span>
-          </button>
-
-          <div class="divider"><span>or continue with</span></div>
-
-          <button type="button" class="btn-google" onclick="handleGoogleLogin()">
-            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-            Sign in with Google
-          </button>
-
-          <p class="switch-hint">Admin? <a href="admin-login.html" class="admin-link">Admin Portal →</a></p>
-        </form>
-
-        <!-- SIGNUP FORM -->
-        <form class="auth-form hidden" id="signupForm" onsubmit="handleSignup(event)">
-          <div class="form-header">
-            <h2>Create Account</h2>
-            <p>Join 12,000+ citizens of Erode District</p>
-          </div>
-
-          <div class="form-grid">
-            <div class="input-group">
-              <label for="signupName">Full Name</label>
-              <div class="input-wrap">
-                <span class="input-icon">👤</span>
-                <input type="text" id="signupName" placeholder="Your full name" required />
-              </div>
+          <!-- TAB 1: Citizen Login -->
+          <form class="auth-form" id="formCitizenLogin" onsubmit="handleCitizenLogin(event)">
+            <div class="form-header">
+              <h2>Citizen Sign In</h2>
+              <p>Enter your registered mobile or email to track complaints</p>
             </div>
 
             <div class="input-group">
-              <label for="signupPhone">Phone Number</label>
+              <label for="cLoginId">Mobile Number / Email</label>
               <div class="input-wrap">
                 <span class="input-icon">📱</span>
-                <input type="tel" id="signupPhone" placeholder="+91 XXXXX XXXXX" required />
+                <input type="text" id="cLoginId" placeholder="9876543210 or name@example.com" value="ramesh@erode.in" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="cLoginPass">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="cLoginPass" placeholder="••••••••" value="citizen123" required />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" id="btnCitizenLogin">
+              Sign In as Citizen →
+            </button>
+
+            <div class="switch-hint">
+              New user? <a href="javascript:void(0)" onclick="switchAuthTab('register')">Register your constituency</a>
+            </div>
+          </form>
+
+          <!-- TAB 2: Citizen Register -->
+          <form class="auth-form hidden" id="formCitizenRegister" onsubmit="handleCitizenRegister(event)">
+            <div class="form-header">
+              <h2>Citizen Registration</h2>
+              <p>Create your verified citizen account for Erode district</p>
+            </div>
+
+            <div class="input-group">
+              <label for="regName">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="regName" placeholder="Ramesh Kumar" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="regPhone">Mobile Number</label>
+              <div class="input-wrap">
+                <span class="input-icon">📱</span>
+                <input type="tel" id="regPhone" placeholder="9876543210" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="regConstituency">Erode Constituency</label>
+              <div class="input-wrap">
+                <span class="input-icon">🗺️</span>
+                <select id="regConstituency" required>
+                  <option value="">Select your constituency</option>
+                  <option value="Erode East" selected>Erode East</option>
+                  <option value="Erode West">Erode West</option>
+                  <option value="Bhavani">Bhavani</option>
+                  <option value="Gobichettipalayam">Gobichettipalayam</option>
+                  <option value="Perundurai">Perundurai</option>
+                  <option value="Modakkurichi">Modakkurichi</option>
+                  <option value="Anthiyur">Anthiyur</option>
+                  <option value="Sathyamangalam">Sathyamangalam</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="regPass">Create Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="regPass" placeholder="••••••••" required />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary">
+              Register &amp; Open Dashboard →
+            </button>
+          </form>
+
+          <!-- TAB 3: Official / Admin Login -->
+          <form class="auth-form hidden" id="formAdminLogin" onsubmit="handleUnifiedAdminLogin(event)">
+            <div class="form-header">
+              <h2 style="color:var(--danger)">Department Officer Sign In</h2>
+              <p>Authorized access for field engineers &amp; resolution staff</p>
+            </div>
+
+            <div class="input-group">
+              <label>Select Department</label>
+              <div class="dept-row" style="margin-top:2px">
+                <button type="button" class="dept-chip active" onclick="selectUnifiedDept(this, 'Roads &amp; Highways')">Roads</button>
+                <button type="button" class="dept-chip" onclick="selectUnifiedDept(this, 'Water Supply')">Water</button>
+                <button type="button" class="dept-chip" onclick="selectUnifiedDept(this, 'Sanitation')">Garbage</button>
+                <button type="button" class="dept-chip" onclick="selectUnifiedDept(this, 'TNEB')">Electricity</button>
+                <button type="button" class="dept-chip" onclick="selectUnifiedDept(this, 'Collectorate')">All (Admin)</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="unifiedAdminUser">Officer Username</label>
+              <div class="input-wrap">
+                <span class="input-icon">🏛️</span>
+                <input type="text" id="unifiedAdminUser" placeholder="admin" value="admin" required />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label for="unifiedAdminPass">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔑</span>
+                <input type="password" id="unifiedAdminPass" placeholder="••••••••" value="admin@2026" required />
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="background:var(--danger)">
+              Login to Department Dashboard →
+            </button>
+          </form>
+
+        </div>
+
+        <div class="trust-badge">
+          <span>🔐</span>
+          <span>Official Erode District Civic Platform</span>
+          <span class="dot">•</span>
+          <span>SSL Secured</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       MASTER VIEW 2: CITIZEN DASHBOARD (EMBEDDED)
+  ══════════════════════════════════════════════════ -->
+  <div id="view-citizen" class="master-view" style="padding-top:52px">
+    <div class="dashboard-body" style="background:var(--bg);display:flex">
+      
+      <!-- Citizen Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+          <div class="logo-icon">🏙️</div>
+          <div class="logo-text">
+            <span class="logo-title">Erode Portal</span>
+            <span class="logo-sub">Citizen Hub</span>
+          </div>
+        </div>
+
+        <div class="sidebar-user">
+          <div class="user-avatar" id="sidebarAvatar">R</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebarName">Ramesh Kumar</div>
+            <div class="user-const" id="sidebarConst">📍 Erode East</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <div class="nav-section-label">Main</div>
+          <button class="nav-item active" id="nav-overview" onclick="navigateTo('overview')">
+            <span class="nav-icon">📊</span> <span data-i18n="overview">Overview</span>
+          </button>
+          <button class="nav-item" id="nav-complaints" onclick="navigateTo('complaints')">
+            <span class="nav-icon">📋</span> <span data-i18n="complaints">My Complaints</span>
+            <span class="nav-badge" id="pendingBadge">3</span>
+          </button>
+          <button class="nav-item" id="nav-new-complaint" onclick="navigateTo('new-complaint')">
+            <span class="nav-icon">➕</span> <span data-i18n="newComplaint">New Complaint</span>
+          </button>
+          <button class="nav-item" id="nav-map" onclick="navigateTo('map')">
+            <span class="nav-icon">🗺️</span> <span data-i18n="map">Public Map</span>
+          </button>
+
+          <div class="nav-section-label" style="margin-top:12px">Reports</div>
+          <button class="nav-item" id="nav-history" onclick="navigateTo('history')">
+            <span class="nav-icon">📁</span> <span data-i18n="history">History</span>
+          </button>
+          <button class="nav-item" id="nav-reports" onclick="navigateTo('reports')">
+            <span class="nav-icon">📈</span> <span data-i18n="reports">Analytics</span>
+          </button>
+
+          <div class="nav-section-label" style="margin-top:12px">Account</div>
+          <button class="nav-item" id="nav-profile" onclick="navigateTo('profile')">
+            <span class="nav-icon">👤</span> <span data-i18n="profile">Profile</span>
+          </button>
+          <button class="nav-item" id="nav-notifications" onclick="navigateTo('notifications')">
+            <span class="nav-icon">🔔</span> Notifications
+            <span class="nav-badge" id="notifBadge">2</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="logout-btn" onclick="showMasterView('auth')">
+            <span>🚪</span> Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <!-- Citizen Main Content -->
+      <main class="dashboard-main">
+        <!-- Top Bar -->
+        <div class="dash-topbar">
+          <div class="topbar-left">
+            <h1 id="pageTitle">Overview</h1>
+            <p id="pageSubtitle">Welcome back, Ramesh! Here's your complaint summary.</p>
+          </div>
+          <div class="topbar-right">
+            <div class="topbar-search">
+              <span>🔍</span>
+              <input type="text" id="globalSearch" placeholder="Search complaints..." oninput="searchComplaints(this.value)" />
+            </div>
+            <div class="topbar-icon-btn" onclick="navigateTo('notifications')" title="Notifications">
+              🔔
+              <span class="notif-dot"></span>
+            </div>
+            <div class="topbar-icon-btn" onclick="navigateTo('profile')" title="Profile">
+              👤
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Page: Overview ── -->
+        <div class="dash-page active" id="page-overview">
+          <div class="stat-grid">
+            <div class="stat-card blue">
+              <div class="stat-card-header"><div class="stat-card-icon">📋</div><span class="stat-card-trend trend-up">↑ 12%</span></div>
+              <div class="stat-card-value counter" data-target="7">7</div>
+              <div class="stat-card-label">Total Complaints</div>
+              <div class="stat-card-sub">Lifetime submissions</div>
+            </div>
+            <div class="stat-card orange">
+              <div class="stat-card-header"><div class="stat-card-icon">⏳</div><span class="stat-card-trend trend-down">-1 this week</span></div>
+              <div class="stat-card-value counter" data-target="3">3</div>
+              <div class="stat-card-label">Pending Action</div>
+              <div class="stat-card-sub">Awaiting resolution</div>
+            </div>
+            <div class="stat-card green">
+              <div class="stat-card-header"><div class="stat-card-icon">✅</div><span class="stat-card-trend trend-up">↑ 4 closed</span></div>
+              <div class="stat-card-value counter" data-target="4">4</div>
+              <div class="stat-card-label">Resolved</div>
+              <div class="stat-card-sub">Successfully closed</div>
+            </div>
+            <div class="stat-card red">
+              <div class="stat-card-header"><div class="stat-card-icon">🚨</div><span class="stat-card-trend trend-down">Action needed</span></div>
+              <div class="stat-card-value counter" data-target="1">1</div>
+              <div class="stat-card-label">Escalated</div>
+              <div class="stat-card-sub">Past SLA deadline</div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div>
+              <div class="section-header">
+                <h2 class="section-title">Recent Complaints</h2>
+                <button class="btn-new-complaint" onclick="navigateTo('new-complaint')">➕ New Complaint</button>
+              </div>
+              <div class="complaints-list" id="overviewComplaintsList"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div class="info-panel">
+                <div class="info-panel-title"><span>🏛️</span> Constituency Overview</div>
+                <div style="font-size:13px;color:var(--text-secondary);line-height:1.6">
+                  <div><strong>Constituency:</strong> Erode East</div>
+                  <div><strong>Nodal Officer:</strong> Thiru. S. Murugan, IAS</div>
+                  <div><strong>Resolution Rate:</strong> 88.4%</div>
+                </div>
+              </div>
+              <div class="info-panel">
+                <div class="info-panel-title"><span>⚡</span> SLA Resolution Tracker</div>
+                <div class="timeline" id="slaTrackerTimeline"></div>
               </div>
             </div>
           </div>
+        </div>
 
-          <div class="input-group">
-            <label for="signupEmail">Email Address</label>
-            <div class="input-wrap">
-              <span class="input-icon">📧</span>
-              <input type="email" id="signupEmail" placeholder="your@email.com" required />
+        <!-- ── Page: My Complaints ── -->
+        <div class="dash-page" id="page-complaints">
+          <div class="section-header">
+            <h2 class="section-title">My Complaints</h2>
+            <div class="section-actions">
+              <button class="filter-btn active" onclick="filterComplaints('all', this)">All</button>
+              <button class="filter-btn" onclick="filterComplaints('submitted', this)">Submitted</button>
+              <button class="filter-btn" onclick="filterComplaints('review', this)">Under Review</button>
+              <button class="filter-btn" onclick="filterComplaints('progress', this)">In Progress</button>
+              <button class="filter-btn" onclick="filterComplaints('resolved', this)">Resolved</button>
             </div>
           </div>
+          <div class="complaints-list" id="myComplaintsList"></div>
+        </div>
 
-          <div class="input-group">
-            <label for="signupConstituency">Constituency / Ward</label>
-            <div class="input-wrap">
-              <span class="input-icon">🗺️</span>
-              <select id="signupConstituency" required>
-                <option value="">Select your constituency</option>
-                <option value="erode-east">Erode East</option>
-                <option value="erode-west">Erode West</option>
-                <option value="erode-central">Erode Central</option>
-                <option value="bhavani">Bhavani</option>
-                <option value="modakkurichi">Modakkurichi</option>
-                <option value="gobichettipalayam">Gobichettipalayam</option>
-                <option value="anthiyur">Anthiyur</option>
-                <option value="perundurai">Perundurai</option>
-                <option value="kodumudi">Kodumudi</option>
-                <option value="chithode">Chithode</option>
-                <option value="nambiyur">Nambiyur</option>
-                <option value="sathyamangalam">Sathyamangalam</option>
-                <option value="bhavanisagar">Bhavanisagar</option>
-                <option value="kangayam">Kangayam</option>
-                <option value="dharapuram">Dharapuram</option>
+        <!-- ── Page: New Complaint (With Voice + Camera + Draggable Map) ── -->
+        <div class="dash-page" id="page-new-complaint">
+          <div class="complaint-form-wrap">
+            <div class="form-steps">
+              <div class="step active" id="step-1"><div class="step-num">1</div><span class="step-label">Details</span></div>
+              <div class="step" id="step-2"><div class="step-num">2</div><span class="step-label">Photo &amp; GPS</span></div>
+              <div class="step" id="step-3"><div class="step-num">3</div><span class="step-label">Review</span></div>
+            </div>
+
+            <!-- Step 1: Details -->
+            <div id="complaint-step-1" style="padding:24px;display:flex;flex-direction:column;gap:16px">
+              <div class="input-group">
+                <label for="cTitle">Complaint Title <span style="color:var(--danger)">*</span></label>
+                <div class="input-wrap">
+                  <span class="input-icon">📝</span>
+                  <input type="text" id="cTitle" placeholder="e.g. Large pothole on main road near market" oninput="onTitleInput(this)" onkeydown="onSuggestKey(event)" autocomplete="off" />
+                </div>
+                <div id="titleSuggestions" style="display:none;margin-top:4px;background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
+              </div>
+
+              <!-- Category Buttons -->
+              <div class="input-group">
+                <label>Category <span style="color:var(--danger)">*</span></label>
+                <div class="category-grid">
+                  <button type="button" class="cat-btn" id="cat-Road" onclick="selectCategory('Road', this)"><span class="cat-btn-icon">🛣️</span><span class="cat-btn-name">Road</span></button>
+                  <button type="button" class="cat-btn" id="cat-Garbage" onclick="selectCategory('Garbage', this)"><span class="cat-btn-icon">🗑️</span><span class="cat-btn-name">Garbage</span></button>
+                  <button type="button" class="cat-btn" id="cat-Water" onclick="selectCategory('Water', this)"><span class="cat-btn-icon">💧</span><span class="cat-btn-name">Water</span></button>
+                  <button type="button" class="cat-btn" id="cat-Electricity" onclick="selectCategory('Electricity', this)"><span class="cat-btn-icon">⚡</span><span class="cat-btn-name">Electricity</span></button>
+                  <button type="button" class="cat-btn" id="cat-Drainage" onclick="selectCategory('Drainage', this)"><span class="cat-btn-icon">🌊</span><span class="cat-btn-name">Drainage</span></button>
+                  <button type="button" class="cat-btn" id="cat-Other" onclick="selectCategory('Other', this)"><span class="cat-btn-icon">📌</span><span class="cat-btn-name">Other</span></button>
+                </div>
+              </div>
+
+              <!-- Description + Voice Controls -->
+              <div class="input-group">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <label for="cDesc">Problem Description <span style="color:var(--danger)">*</span></label>
+                  <span id="descCounter" style="font-size:11px;color:var(--text-muted)">0 / 500</span>
+                </div>
+                <textarea id="cDesc" rows="4" placeholder="Describe the issue in detail, street name, landmark, when it started..." oninput="onDescInput(this)" maxlength="500"></textarea>
+
+                <!-- Voice Input Buttons -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:8px;padding:8px 12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius-sm)">
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <button type="button" id="btnVoiceInput" class="btn-secondary" style="padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px" onclick="toggleSpeechRecognition()">
+                      <span id="voiceMicIcon">🎙️</span> <span id="voiceInputText">Speak (Voice-to-Text)</span>
+                    </button>
+                    <button type="button" id="btnVoiceNote" class="btn-secondary" style="padding:5px 10px;font-size:12px;display:inline-flex;align-items:center;gap:6px" onclick="toggleAudioVoiceNote()">
+                      <span id="noteRecIcon">🔴</span> <span id="voiceNoteText">Record Voice Note</span>
+                    </button>
+                  </div>
+                  <span id="voiceStatus" style="font-size:11px;color:var(--text-muted);font-weight:500"></span>
+                </div>
+
+                <div id="voiceNotePlayerContainer" style="display:none;margin-top:8px;padding:8px 12px;background:var(--bg-white);border:1px solid #bbf7d0;border-radius:var(--radius-sm);align-items:center;gap:10px">
+                  <span style="font-size:12px;font-weight:700;color:var(--success)">🎵 Voice Note Attached:</span>
+                  <audio id="voiceNoteAudio" controls style="height:30px;flex:1"></audio>
+                  <button type="button" onclick="deleteVoiceNote()" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px" title="Delete voice note">🗑️</button>
+                </div>
+              </div>
+
+              <!-- Severity Selector -->
+              <div class="input-group">
+                <label>How severe is this issue?</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button type="button" class="severity-btn" id="sev-low" onclick="setSeverity('low', this)">😐 Minor</button>
+                  <button type="button" class="severity-btn" id="sev-medium" onclick="setSeverity('medium', this)">⚠️ Moderate</button>
+                  <button type="button" class="severity-btn" id="sev-high" onclick="setSeverity('high', this)">🔴 Serious</button>
+                  <button type="button" class="severity-btn" id="sev-critical" onclick="setSeverity('critical', this)">🚨 Emergency</button>
+                </div>
+              </div>
+
+              <!-- AI Priority Banner -->
+              <div id="aiPriorityBanner" style="display:none" class="ai-priority-banner"></div>
+
+              <div style="display:flex;justify-content:flex-end;margin-top:10px">
+                <button type="button" class="btn-primary" style="width:auto;padding:10px 24px" onclick="goToStep(2)">
+                  Next: Photo &amp; Location →
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 2: Live Photo & GPS Location -->
+            <div id="complaint-step-2" style="padding:24px;display:none;flex-direction:column;gap:16px">
+              <!-- Live Camera -->
+              <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:13px">📷 Live Incident Camera</strong>
+                  <span style="font-size:11px;color:var(--text-muted)">Gallery upload disabled</span>
+                </div>
+                <div id="cameraIdle" style="padding:20px;text-align:center">
+                  <div style="font-size:36px;margin-bottom:8px">📸</div>
+                  <button type="button" class="btn-primary" style="width:auto;padding:8px 20px;margin:0 auto" onclick="startCamera()">
+                    Start Live Camera
+                  </button>
+                </div>
+                <div id="cameraPreview" style="display:none;position:relative;background:#000">
+                  <video id="cameraFeed" autoplay playsinline style="width:100%;max-height:260px;object-fit:cover;display:block"></video>
+                  <div style="padding:10px;display:flex;justify-content:center;background:rgba(0,0,0,0.7)">
+                    <button type="button" class="btn-primary" style="width:auto;padding:8px 24px;background:#16a34a" onclick="capturePhoto()">
+                      📸 Capture Verified Photo
+                    </button>
+                  </div>
+                </div>
+                <div id="capturedPreview" style="display:none">
+                  <img id="capturedImg" style="width:100%;max-height:220px;object-fit:cover;display:block" />
+                  <div style="padding:10px 14px;background:#f0fdf4;border-top:1px solid #bbf7d0;display:flex;justify-content:space-between;align-items:center">
+                    <span style="font-size:12px;color:var(--success);font-weight:600">✅ Live Photo Verified &amp; Watermarked</span>
+                    <button type="button" class="btn-secondary" style="padding:4px 10px;font-size:11px" onclick="retakePhoto()">🔄 Retake</button>
+                  </div>
+                </div>
+              </div>
+
+              <canvas id="captureCanvas" style="display:none"></canvas>
+
+              <!-- GPS Location with Draggable Pin -->
+              <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                  <strong style="font-size:13px">📍 GPS Location</strong>
+                  <button type="button" class="btn-secondary" onclick="captureLocation()" id="locationBtn" style="padding:5px 12px;font-size:11px">
+                    📡 Detect Location
+                  </button>
+                </div>
+                <div id="locationIdle" style="padding:14px;font-size:13px;color:var(--text-muted);display:flex;align-items:center;gap:8px">
+                  <span>🗺️</span> Click "Detect Location" to fetch GPS coordinates
+                </div>
+                <div id="locationLoading" style="display:none;padding:14px">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div class="spinner" style="border-top-color:var(--blue)"></div>
+                    <span style="font-size:12px;color:var(--text-secondary)">Fetching high-precision GPS...</span>
+                  </div>
+                </div>
+                <div id="locationDisplay" style="display:none;padding:14px">
+                  <div style="font-size:13px;font-weight:700;color:var(--text-primary)" id="locationAddress"></div>
+                  <div style="font-size:11px;color:var(--text-muted);font-family:monospace;margin-top:2px" id="locationCoords"></div>
+                  <div id="step2MapContainer" style="margin-top:10px">
+                    <div id="step2LeafletMap" style="height:180px;border-radius:var(--radius-sm);border:1px solid var(--border)"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                      <span style="font-size:11px;color:var(--text-muted)">💡 Drag marker to adjust exact repair spot.</span>
+                      <a id="step2GmapsPreview" href="#" target="_blank" class="btn-nav-gmaps" style="font-size:11px;padding:3px 8px">🚗 Test Navigation</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;margin-top:6px">
+                <button type="button" class="btn-secondary" onclick="goToStep(1)">← Back</button>
+                <button type="button" class="btn-primary" style="width:auto;padding:10px 24px" onclick="goToStep(3)" id="step2NextBtn" disabled>
+                  Next: Review →
+                </button>
+              </div>
+            </div>
+
+            <!-- Step 3: Review -->
+            <div id="complaint-step-3" style="padding:24px;display:none;flex-direction:column;gap:16px">
+              <div style="padding:10px 14px;background:var(--bg-panel);border-radius:var(--radius-sm);border:1px dashed var(--border);display:flex;justify-content:space-between">
+                <span style="font-size:12px;color:var(--text-muted)">Complaint ID</span>
+                <span id="previewComplaintId" style="font-weight:700;color:var(--blue);font-family:monospace"></span>
+              </div>
+              <div id="reviewSummary" style="display:flex;flex-direction:column;gap:8px"></div>
+              
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <input type="checkbox" id="declarationCheck" onchange="checkDeclaration()" style="margin-top:3px" />
+                <label for="declarationCheck" style="font-size:12px;color:var(--text-secondary)">
+                  I declare that this complaint represents an authentic issue and the captured photo &amp; GPS location are accurate.
+                </label>
+              </div>
+
+              <div style="display:flex;justify-content:space-between;margin-top:6px">
+                <button type="button" class="btn-secondary" onclick="goToStep(2)">← Back</button>
+                <button type="button" class="btn-primary" style="width:auto;padding:10px 24px" onclick="submitComplaint()" id="submitBtn" disabled>
+                  🚀 Submit Complaint
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── Page: Public Map ── -->
+        <div class="dash-page" id="page-map">
+          <div class="section-header">
+            <h2 class="section-title">Public Complaints Map — Erode District</h2>
+            <div class="section-actions">
+              <button class="filter-btn active" onclick="filterMapBy('all', this)">All</button>
+              <button class="filter-btn" onclick="filterMapBy('critical', this)">🔴 Critical</button>
+              <button class="filter-btn" onclick="filterMapBy('Road', this)">🛣️ Roads</button>
+              <button class="filter-btn" onclick="filterMapBy('Water', this)">💧 Water</button>
+              <button class="filter-btn" onclick="filterMapBy('Garbage', this)">🗑️ Garbage</button>
+              <button class="filter-btn" onclick="filterMapBy('Electricity', this)">⚡ Electricity</button>
+            </div>
+          </div>
+          <div id="leafletMap" style="height:440px;border-radius:var(--radius);border:1px solid var(--border);margin-bottom:16px"></div>
+          <div class="complaints-list" id="nearbyComplaintsList"></div>
+        </div>
+
+        <!-- ── Page: History ── -->
+        <div class="dash-page" id="page-history">
+          <div class="section-header">
+            <h2 class="section-title">Complaint History</h2>
+            <button class="btn-secondary" onclick="downloadCSV()">⬇ Export CSV</button>
+          </div>
+          <div class="complaints-list" id="historyComplaintsList"></div>
+        </div>
+
+        <!-- ── Page: Reports / Analytics ── -->
+        <div class="dash-page" id="page-reports">
+          <div class="section-header"><h2 class="section-title">Analytics &amp; SLA Breakdown</h2></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="info-panel"><div class="info-panel-title">Status Distribution</div><div id="statusSplit" style="display:flex;flex-direction:column;gap:10px"></div></div>
+            <div class="info-panel"><div class="info-panel-title">Priority Severity</div><div id="priorityDist" style="display:flex;flex-direction:column;gap:10px"></div></div>
+          </div>
+        </div>
+
+        <!-- ── Page: Profile ── -->
+        <div class="dash-page" id="page-profile">
+          <div class="section-header"><h2 class="section-title">Citizen Profile</h2></div>
+          <div class="info-panel" style="max-width:500px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div><label style="font-size:12px;color:var(--text-muted)">Name</label><div style="font-weight:600">Ramesh Kumar</div></div>
+              <div><label style="font-size:12px;color:var(--text-muted)">Mobile</label><div style="font-weight:600">+91 98765 43210</div></div>
+              <div><label style="font-size:12px;color:var(--text-muted)">Constituency</label><div style="font-weight:600">📍 Erode East</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Page: Notifications ── -->
+        <div class="dash-page" id="page-notifications">
+          <div class="section-header"><h2 class="section-title">Notifications</h2></div>
+          <div id="notifList" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════
+       MASTER VIEW 3: DEPARTMENT ADMIN PANEL (ORGANIZED)
+  ══════════════════════════════════════════════════ -->
+  <div id="view-admin" class="master-view" style="padding-top:52px">
+    <div class="admin-layout">
+      <!-- Admin Sidebar -->
+      <aside class="admin-sidebar" style="top:52px">
+        <div class="admin-logo">
+          <div class="admin-logo-badge">🏛️</div>
+          <div>
+            <div class="admin-logo-text">Admin Panel</div>
+            <div class="admin-logo-sub">Erode District Control Hub</div>
+          </div>
+        </div>
+
+        <div style="padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02)">
+          <div style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">Logged Officer</div>
+          <div style="font-size:13px;font-weight:700;color:#f1f5f9" id="unifiedAdminOfficerName">admin</div>
+          <div style="font-size:11px;color:#60a5fa;margin-top:2px;font-weight:500" id="unifiedAdminDeptName">Roads &amp; Highways</div>
+        </div>
+
+        <nav class="admin-nav">
+          <div style="padding:10px 16px 4px;font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:0.08em">Navigation</div>
+          <button class="admin-nav-item active" onclick="adminNav('overview', this)">📊 Overview</button>
+          <button class="admin-nav-item" onclick="adminNav('complaints', this)">📋 Department Tasks</button>
+          <button class="admin-nav-item" onclick="adminNav('escalated', this)">🚨 Escalated (Overdue)</button>
+          <button class="admin-nav-item" onclick="adminNav('resolved', this)">✅ Resolved Tasks</button>
+          <button class="admin-nav-item" onclick="adminNav('reports', this)">📈 Analytics &amp; SLA</button>
+        </nav>
+
+        <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08)">
+          <button onclick="showMasterView('auth')" style="width:100%;padding:9px;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.25);border-radius:var(--radius-sm);color:#fca5a5;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">
+            🚪 Sign Out
+          </button>
+        </div>
+      </aside>
+
+      <!-- Admin Main Content Area -->
+      <main class="admin-main">
+        <!-- Topbar -->
+        <div class="admin-topbar">
+          <div>
+            <h1 id="adminPageTitle">Department Overview</h1>
+            <p id="adminPageSub">Field repair &amp; SLA resolution monitoring for <strong id="topbarDeptBadge" style="color:var(--blue)">Roads &amp; Highways</strong></p>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary)">
+              <span>Department:</span>
+              <select id="quickDeptSwitch" class="filter-select" style="font-size:12px;padding:5px 10px;font-weight:600" onchange="changeDeptFilter(this.value)">
+                <option value="Roads &amp; Highways">🛣️ Roads &amp; Highways</option>
+                <option value="Water Supply">💧 Water Supply</option>
+                <option value="Sanitation">🗑️ Sanitation / Garbage</option>
+                <option value="Tamil Nadu Electricity Board">⚡ TNEB Electricity</option>
+                <option value="Drainage">🌊 Drainage &amp; Sewage</option>
+                <option value="ALL">🏛️ All Departments (Collectorate)</option>
               </select>
             </div>
+            <div class="admin-badge">🟢 Active On Duty</div>
           </div>
+        </div>
 
-          <div class="form-grid">
-            <div class="input-group">
-              <label for="signupPass">Password</label>
-              <div class="input-wrap">
-                <span class="input-icon">🔒</span>
-                <input type="password" id="signupPass" placeholder="Min. 8 characters" required />
-                <button type="button" class="toggle-pass" onclick="togglePass('signupPass', this)">👁</button>
+        <!-- ── Admin Page: Overview (Clean 2-Column Grid) ── -->
+        <div class="admin-page active" id="admin-page-overview">
+          <!-- KPI Metrics Row -->
+          <div class="admin-stats" id="adminStatsRow"></div>
+
+          <!-- Structured 2-Column Grid -->
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
+            <!-- Left Column: Department Tasks Table -->
+            <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow-sm)">
+              <div class="section-header" style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+                <div>
+                  <h2 class="section-title" style="font-size:15px">Assigned Tasks (<span id="adminDeptLabel">Roads &amp; Highways</span>)</h2>
+                  <p style="font-size:12px;color:var(--text-muted)">Latest civic complaints pending department action</p>
+                </div>
+                <button class="btn-update" onclick="adminNav('complaints', document.querySelectorAll('#view-admin .admin-nav-item')[1])">
+                  View Full Table →
+                </button>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="complaints-table" id="overviewTable">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Complaint</th>
+                      <th>Location</th>
+                      <th>Field Travel</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                      <th>SLA Deadline</th>
+                      <th>Update</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overviewTableBody"></tbody>
+                </table>
               </div>
             </div>
 
-            <div class="input-group">
-              <label for="signupConfirm">Confirm Password</label>
-              <div class="input-wrap">
-                <span class="input-icon">🔒</span>
-                <input type="password" id="signupConfirm" placeholder="Re-enter password" required />
+            <!-- Right Column: Escalation Alert Feed & Quick Performance -->
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <!-- Escalation Feed -->
+              <div class="escalation-panel" id="escalationPanel" style="margin-bottom:0">
+                <h3 style="font-size:13px;font-weight:700;color:#dc2626;display:flex;align-items:center;gap:6px;margin-bottom:10px">
+                  🚨 Urgent SLA Escalations
+                </h3>
+                <div class="esc-list" id="escalationList"></div>
+              </div>
+
+              <!-- Quick Progress Card -->
+              <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-sm)">
+                <div style="font-size:13px;font-weight:700;margin-bottom:10px">📊 Department Resolution Rate</div>
+                <div style="font-size:24px;font-weight:800;color:var(--success);margin-bottom:4px">88.4%</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Average resolution within committed SLA window</div>
+                <div style="height:6px;background:var(--bg-panel);border-radius:3px;overflow:hidden">
+                  <div style="width:88.4%;height:100%;background:var(--success);border-radius:3px"></div>
+                </div>
               </div>
             </div>
           </div>
+        </div>
 
-          <label class="checkbox-wrap terms-wrap">
-            <input type="checkbox" id="termsCheck" required />
-            <span class="checkmark"></span>
-            I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-          </label>
+        <!-- ── Admin Page: All Complaints ── -->
+        <div class="admin-page" id="admin-page-complaints">
+          <div class="filter-row">
+            <div class="search-bar">
+              <span>🔍</span>
+              <input type="text" placeholder="Search by ID, title, street..." oninput="filterAdminTable()" id="adminSearch" />
+            </div>
+            <select class="filter-select" id="filterStatus" onchange="filterAdminTable()">
+              <option value="">All Status</option>
+              <option value="submitted">Submitted</option>
+              <option value="review">Under Review</option>
+              <option value="progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+            <select class="filter-select" id="filterPriority" onchange="filterAdminTable()">
+              <option value="">All Priority</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <span id="adminTableCount" style="font-size:12px;color:var(--text-muted);margin-left:auto"></span>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="complaints-table" id="adminComplaintsTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Department</th>
+                  <th>Location Landmark &amp; GPS</th>
+                  <th>🚗 Travel Map</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>SLA Deadline</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody"></tbody>
+            </table>
+          </div>
+        </div>
 
-          <button type="submit" class="btn-primary" id="signupBtn">
-            <span class="btn-text">Create Account</span>
-            <span class="btn-arrow">→</span>
-          </button>
-        </form>
+        <!-- ── Admin Page: Escalated ── -->
+        <div class="admin-page" id="admin-page-escalated">
+          <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">⚠️</span>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#dc2626">Overdue &amp; Escalated Complaints</div>
+              <div style="font-size:12px;color:#ef4444">These complaints missed their committed SLA resolution time. Immediate field visit required.</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="complaints-table" id="escalatedTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Complaint</th>
+                  <th>Exact Location</th>
+                  <th>Navigation</th>
+                  <th>Priority</th>
+                  <th>SLA Missed By</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="escalatedTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Admin Page: Resolved ── -->
+        <div class="admin-page" id="admin-page-resolved">
+          <div style="background:var(--success-bg);border:1px solid var(--success-bd);border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:22px">✅</span>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:var(--success)">Resolved Department Complaints</div>
+              <div style="font-size:12px;color:var(--success)">All completed civic repairs with verified closure.</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="complaints-table" id="resolvedTable">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Complaint</th>
+                  <th>Department</th>
+                  <th>Location</th>
+                  <th>Priority</th>
+                  <th>Submitted</th>
+                  <th>Resolved Date</th>
+                  <th>Days Taken</th>
+                </tr>
+              </thead>
+              <tbody id="resolvedTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Admin Page: Reports ── -->
+        <div class="admin-page" id="admin-page-reports">
+          <div class="admin-stats" id="reportStatsRow" style="margin-bottom:20px"></div>
+          <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:var(--shadow-sm)">
+            <div style="font-size:14px;font-weight:700;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">📊 Department Resolution Progress</div>
+            <div id="reportBreakdown" style="display:flex;flex-direction:column;gap:12px"></div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-primary" style="width:auto;padding:10px 20px" onclick="downloadReport()">⬇ Download Department Report (CSV)</button>
+            <button class="btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <!-- Complaint Detail Modal -->
+  <div id="complaintModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center">
+    <div id="modalContent" style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:540px;width:90%;max-height:90vh;overflow-y:auto"></div>
+  </div>
+
+  <!-- Location Map Modal -->
+  <div class="modal-overlay" id="locationModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div style="font-weight:700;font-size:14px" id="modalMapTitle">📍 Field Location Details</div>
+        <span style="cursor:pointer;font-size:18px" onclick="closeMapModal()">✕</span>
       </div>
-
-      <!-- Trust Badge -->
-      <div class="trust-badge">
-        <span>🔐</span>
-        <span>256-bit SSL secured</span>
-        <span class="dot">•</span>
-        <span>Official Government Portal</span>
-        <span class="dot">•</span>
-        <span>Data Protected under IT Act 2000</span>
+      <div style="padding:16px">
+        <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px" id="modalMapAddress"></div>
+        <div id="modalLeafletMap" style="height:240px;border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:14px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:var(--text-muted)" id="modalMapCoords"></span>
+          <a id="modalGmapsBtn" href="#" target="_blank" class="btn-nav-gmaps" style="padding:8px 16px;font-size:13px">
+            🚗 Open Google Maps Navigation →
+          </a>
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
+  </div>
 
   <!-- Toast Notification -->
   <div class="toast" id="toast"></div>
 
   <script src="app.js"></script>
+  <script>
+    /* ── Master Single-Host View Switcher ── */
+    function showMasterView(viewName) {
+      document.querySelectorAll('.master-view').forEach(v => v.classList.remove('active'));
+      const target = document.getElementById(`view-${viewName}`);
+      if (target) target.classList.add('active');
+
+      if (viewName === 'citizen') {
+        renderOverviewComplaints();
+        renderMyComplaints();
+        renderSlaTracker();
+      } else if (viewName === 'admin') {
+        renderAdminOverview();
+      }
+      window.scrollTo(0, 0);
+    }
+
+    function switchAuthTab(tab) {
+      document.getElementById('tabBtnCitizen').classList.toggle('active', tab === 'citizen');
+      document.getElementById('tabBtnRegister').classList.toggle('active', tab === 'register');
+      document.getElementById('tabBtnAdmin').classList.toggle('active', tab === 'admin');
+
+      document.getElementById('formCitizenLogin').classList.toggle('hidden', tab !== 'citizen');
+      document.getElementById('formCitizenRegister').classList.toggle('hidden', tab !== 'register');
+      document.getElementById('formAdminLogin').classList.toggle('hidden', tab !== 'admin');
+    }
+
+    /* Citizen Auth Handlers */
+    function handleCitizenLogin(e) {
+      e.preventDefault();
+      const id = document.getElementById('cLoginId').value.trim();
+      const pass = document.getElementById('cLoginPass').value.trim();
+      if (!id || !pass) { showToast('Please enter mobile/email and password', 'error'); return; }
+      
+      showToast('✅ Signed in successfully! Welcome to Citizen Portal.', 'success');
+      showMasterView('citizen');
+    }
+
+    function handleCitizenRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const constName = document.getElementById('regConstituency').value;
+      if (!name || !constName) { showToast('Please fill all fields', 'error'); return; }
+
+      document.getElementById('sidebarName').textContent = name;
+      document.getElementById('sidebarConst').textContent = `📍 ${constName}`;
+      showToast(`✅ Registered successfully as citizen of ${constName}!`, 'success');
+      showMasterView('citizen');
+    }
+
+    /* Admin Auth Handler in Unified App */
+    let unifiedChosenDept = 'Roads & Highways';
+    function selectUnifiedDept(btn, dept) {
+      document.querySelectorAll('#formAdminLogin .dept-chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      unifiedChosenDept = dept;
+    }
+
+    function handleUnifiedAdminLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('unifiedAdminUser').value.trim();
+      const pass = document.getElementById('unifiedAdminPass').value.trim();
+
+      if (user !== 'admin' && !user.includes('erode.gov.in') && user !== 'officer') {
+        showToast('❌ Invalid Admin Username. Use: admin', 'error');
+        return;
+      }
+      if (pass !== 'admin@2026') {
+        showToast('❌ Invalid Password. Use: admin@2026', 'error');
+        return;
+      }
+
+      currentAdminDept = unifiedChosenDept;
+      document.getElementById('unifiedAdminOfficerName').textContent = user;
+      document.getElementById('unifiedAdminDeptName').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+      document.getElementById('adminDeptLabel').textContent = currentAdminDept === 'Collectorate' ? 'All Departments' : currentAdminDept;
+      document.getElementById('topbarDeptBadge').textContent = currentAdminDept === 'Collectorate' ? 'All Departments (Collectorate)' : currentAdminDept;
+
+      const quickSwitch = document.getElementById('quickDeptSwitch');
+      if (quickSwitch) quickSwitch.value = currentAdminDept === 'Collectorate' ? 'ALL' : currentAdminDept;
+
+      showToast(`✅ Official login verified: ${user} (${currentAdminDept})`, 'success');
+      showMasterView('admin');
+    }
+  </script>
 </body>
 </html>
